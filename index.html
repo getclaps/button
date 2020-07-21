@@ -1,8 +1,8 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="dist/applause-button.css" />
-  <script src="dist/applause-button.js"></script>
+  <!-- <link rel="stylesheet" href="dist/applause-button.css" /> -->
+  <script type="module" src="./dist/applause-button.js"></script>
   <style>
     applause-button {
       width: 58px;
@@ -13,14 +13,13 @@
   </style>
 </head>
 <body>
-  <applause-button id="applause" multiclap="true" url="google.com"/>
+  <applause-button id="applause" multiclap url="foobar.com"></applause-button>
   <script type="text/javascript">
-
     const button = document.getElementById("applause");
 
-    button.initialClapCount.then(function(count) {
-      console.log("initial clap count", count);
-    });
+    // button.initialClapCount.then(function(count) {
+    //   console.log("initial clap count", count);
+    // });
 
     button.addEventListener("clapped", function(event) {
       console.log("button clapped", event.detail);

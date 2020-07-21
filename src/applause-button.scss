@@ -20,23 +20,24 @@
   bottom: 0;
 }
 
-applause-button {
+:root {
   position: relative;
   cursor:pointer;
+}
 
-  .style-root {
+.style-root {
+  @include position-fill();
+
+  &:after {
     @include position-fill();
+    content: " ";
+    display: block;
+    border-radius: 50%;
+    border: 1px solid;
+  }
 
-    &:after {
-      @include position-fill();
-      content: " ";
-      display: block;
-      border-radius: 50%;
-      border: 1px solid;
-    }
-    &:hover:after:not(.clap-limit-exceeded) {
-      border-color: inherit;
-    }
+  &:hover:after:not(.clap-limit-exceeded) {
+    border-color: inherit;
   }
 
   &.loading {

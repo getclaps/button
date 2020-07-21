@@ -1,26 +1,17 @@
-import babel from "rollup-plugin-babel";
-import uglify from "rollup-plugin-uglify";
-import resolve from "rollup-plugin-node-resolve";
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import typescript from 'rollup-plugin-typescript';
 
 export default {
-  input: "src/applause-button.js",
-  plugins: [
-    resolve(),
-    babel({
-      presets: [
-        [
-          "env",
-          {
-            modules: false
-          }
-        ]
-      ],
-      plugins: ["external-helpers"]
-    }),
-    uglify()
-  ],
-  output: {
-    file: "dist/applause-button.js",
-    format: "umd"
-  }
+    input: 'src/index.ts',
+    output: {
+        file: `dist/applause-button.js`,
+        format: 'es',
+        sourcemap: true
+    },
+    plugins: [
+        typescript(),
+        resolve(),
+        commonjs(),
+    ],
 };

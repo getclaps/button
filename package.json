@@ -1,49 +1,52 @@
 {
-  "name": "applause-button",
-  "description": "A zero-configuration button for adding applause / claps / kudos to web pages and blog-posts",
-  "version": "0.0.0-development",
-  "main": "dist/applause-button.js",
-  "license": "MIT",
-  "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-env": "^1.6.1",
-    "http-server": "^0.11.1",
-    "jest": "^24.1.0",
-    "jest-puppeteer": "^4.0.0",
-    "node-sass": "^4.9.0",
-    "prettier": "^1.16.4",
-    "prettier-check": "^2.0.0",
-    "puppeteer": "^1.13.0",
-    "rollup": "^0.58.2",
-    "rollup-plugin-babel": "^3.0.4",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-uglify": "^3.0.0",
-    "semantic-release": "^15.4.1",
-    "travis-deploy-once": "^5.0.0",
-    "watch": "^1.0.2"
+  "name": "@hydecorp/applause-button",
+  "version": "1.0.0-alpha.0",
+  "description": "",
+  "type": "module",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "test": "yarn run test:prettier && yarn run test:jest",
-    "test:jest": "yarn run build && jest",
-    "test:prettier": "prettier-check src/**/*.js",
-    "test:server": "http-server -p 8081",
-    "watch": "watch \"yarn run build\" src",
-    "build": "yarn run build:scss && yarn run build:js",
-    "build:scss": "node-sass --output-style compressed -o dist src/applause-button.scss",
-    "build:js": "rollup -c",
-    "prepublish": "yarn run build",
-    "travis-deploy-once": "travis-deploy-once",
-    "semantic-release": "semantic-release"
+    "clean": "rm -rf lib",
+    "test": "exit 0",
+    "build:tsc": "tsc -d --outDir lib",
+    "watch:tsc": "tsc -d --outDir lib -w",
+    "build:rollup": "rollup -c",
+    "watch:rollup": "rollup -c -w",
+    "build": "npm run build:tsc & npm run build:rollup & wait",
+    "watch": "npm run watch:tsc & npm run watch:rollup",
+    "dev": "npm run watch & http-server -p 3337",
+    "preversion": "sed -i '' -E 's:^(lib|docs/assets/hy-\\*)$:#<removed temporarily>\\1:' .gitignore",
+    "version": "npm run build && git add .",
+    "postversion": "sed -i '' -E 's:^#<removed temporarily>(lib|docs/assets/hy-\\*)$:\\1:' .gitignore && git rm --cached -r lib docs/assets/hy-* && git add . && git commit -m 'Restore preversion .gitignore'",
+    "prepack": "npm run clean && npm run build"
+  },
+  "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "rollup": "^2.18.1",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-typescript": "^1.0.1",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.5"
   },
   "dependencies": {
-    "document-register-element": "^1.8.1"
+    "lit-element": "^2.3.1",
+    "lit-html": "^1.2.1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ColinEberhardt/applause-button.git"
+    "url": "git+https://github.com/hydecorp/applause-button.git"
   },
-  "jest": {
-    "preset": "jest-puppeteer"
-  }
+  "bugs": {
+    "url": "https://github.com/hydecorp/applause-button/issues"
+  },
+  "homepage": "https://hydecorp.github.io/applause-button/",
+  "tags": []
 }
