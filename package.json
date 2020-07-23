@@ -37,8 +37,11 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
+    "base64-encoding": "^0.2.0",
+    "kv-storage-polyfill": "^2.0.0",
     "lit-element": "^2.3.1",
-    "lit-html": "^1.2.1"
+    "lit-html": "^1.2.1",
+    "uuid-class": "^0.2.0"
   },
   "repository": {
     "type": "git",

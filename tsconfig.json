@@ -8,6 +8,8 @@
     "moduleResolution": "node",
     "module": "esnext",
     "target": "esnext",
+    "allowJs": true,
+    "checkJs": true,
     "outDir": "dist",
     "declaration": true,
     "declarationMap": true,

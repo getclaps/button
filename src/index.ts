@@ -3,10 +3,16 @@
 import { html, svg, LitElement, customElement, query, property } from "lit-element";
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
-import { styles } from './styles';
+import { UUID } from 'uuid-class';
+import { StorageArea } from 'kv-storage-polyfill';
 
-const VERSION = "0.1.0";
+import { styles } from './styles';
+import { proofOfClap, checkProofOfClap } from './util.js';
+
+const BASE_DIFFICULTY = 9;
+
 const API = "http://localhost:8787";
+const storage = new StorageArea('applause-button');
 
 const urlWithParams = (url: string, params?: object) => {
   const u = new URL(url, self.location.origin);
@@ -36,11 +42,22 @@ const getClaps = (api: string, url: string) => {
     .then(response => response.json());
 }
 
-const updateClapsApi = (api: string, claps: number, url: string) => {
-  return fetch(new JSONRequest(urlWithParams(`${api}/update-claps`, { url }), { 
+const updateClapsApi = async (api: string, claps: number, url: string) => {
+  const id = new UUID(await storage.get('id'));
+  const tx = await storage.get('tx');
+  await storage.set('tx', tx + 1);
+
+  const difficulty = BASE_DIFFICULTY + Math.round(Math.log2(claps));
+  console.time('proof-of-clap')
+  const nonce = await proofOfClap({ url, id, tx }, difficulty);
+  console.timeEnd('proof-of-clap')
+
+  // TODO: proof of work
+  const response = await fetch(new JSONRequest(urlWithParams(`${api}/update-claps`, { url }), { 
     method: 'POST',
-    body: { claps, version: VERSION },
-  })).then(response => response.json());
+    body: { claps, id, tx, nonce },
+  }));
+  return response.json();
 };
 
 const arrayOfSize = size => new Array(size).fill(undefined);
