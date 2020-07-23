@@ -11,6 +11,7 @@ const API = "http://localhost:8787";
 const urlWithParams = (url: string, params?: object) => {
   const u = new URL(url, self.location.origin);
   if (params) {
+    // @ts-ignore
     u.search = new URLSearchParams([...u.searchParams, ...Object.entries(params)]).toString();
   }
   return u.href;
@@ -77,22 +78,43 @@ export class ApplauseButton extends LitElement {
 
   @property({ type: Boolean, reflect: true }) multiClap: boolean = true;
 
-  @property({ type: String, reflect: false }) url: string = window.location.href;
+  @property({ type: String, reflect: false }) url: string;
   @property({ type: String, reflect: false }) api: string = API;
 
   @property() private totalClaps: number = 0;
-  @property() private _loading: boolean;
-  @property() private _clapped: boolean = false;
+  @property() private loading: boolean;
+  @property() private clapped: boolean = false;
 
-  connectedCallback() {
+  private canonicalUrl: string;
+  private getCanonicalUrl() {
+    if (this.url) {
+      return new URL(this.url, window.location.origin).href;
+    }
+
+    // TODO: validate real url?
+    const linkEl = document.head.querySelector('link[rel=canonical]') as HTMLLinkElement|null;
+    if (linkEl) return linkEl.href;
+
+    return window.location.href;
+  }
+
+  async connectedCallback() {
     super.connectedCallback();
 
-    this._loading = true;
+    this.canonicalUrl = this.getCanonicalUrl();
+
+    this.loading = true;
     this.addEventListener('mousedown', this.clickCallback);
     this.addEventListener('touchstart', this.clickCallback);
 
-    getClaps(this.api, this.url).then(claps => {
-      this._loading = false;
+    if (!await storage.get('id')) {
+      const userId = new UUID();
+      storage.set('id', userId.buffer);
+      storage.set('tx', 0);
+    }
+
+    getClaps(this.api, this.canonicalUrl).then(claps => {
+      this.loading = false;
       const clapCount = Number(claps);
       if (clapCount > 0) {
         this.totalClaps = clapCount;
@@ -111,8 +133,8 @@ export class ApplauseButton extends LitElement {
       <div 
         class=${classMap({
           'style-root': true,
-          'loading': this._loading,
-          'clapped': this._clapped,
+          'loading': this.loading,
+          'clapped': this.clapped,
         })}
         style=${styleMap({
           fill: 'var(--applause-button-color, rgb(79,177,186))',
@@ -147,7 +169,7 @@ export class ApplauseButton extends LitElement {
 
   private bufferedClaps: number = 0;
   private updateClaps = debounce(() => {
-    updateClapsApi(this.api, this.bufferedClaps, this.url).then(x => { 
+    updateClapsApi(this.api, this.bufferedClaps, this.canonicalUrl).then(x => { 
       toggleClass(this.styleRootEl, "clap");
       setTimeout(() => { this.totalClaps = Number(x) }, 250);
     });
@@ -161,7 +183,7 @@ export class ApplauseButton extends LitElement {
 
     event.preventDefault();
 
-    this._clapped = true;
+    this.clapped = true;
 
     const clapCount = this.bufferedClaps + 1;
     this.dispatchEvent(new CustomEvent("clapped", {

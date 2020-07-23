@@ -48,6 +48,8 @@ export const styles = css`
     opacity: 0.8;
     stroke: none;
     overflow: visible !important; }
+    .style-root svg g.flat, .style-root svg g.outline {
+      transform: translate(3px, 2px); }
     .style-root svg g.flat {
       visibility: hidden; }
     .style-root svg g.outline {
@@ -58,7 +60,7 @@ export const styles = css`
     visibility: hidden; }
   .style-root .count-container {
     position: absolute;
-    top: -40%;
+    top: -50%;
     width: 100%;
     color: gray;
     user-select: none; }
