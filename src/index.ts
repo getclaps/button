@@ -7,7 +7,7 @@ import { UUID } from 'uuid-class';
 import { StorageArea } from 'kv-storage-polyfill';
 
 import { styles } from './styles';
-import { makeKey, proofOfClap, calcDifficulty } from './util.js';
+import { proofOfClap } from './util.js';
 
 const API = "http://localhost:8787";
 const storage = new StorageArea('applause-button');
@@ -41,18 +41,18 @@ const getClaps = (api: string, url: string) => {
 }
 
 const updateClapsApi = async (api: string, claps: number, url: string) => {
+  const urlClass = new URL(url, window.location.origin);
+  urlClass.search = '';
+
   const id = new UUID(await storage.get('id'));
 
-  const key = new Uint8Array(await makeKey({ url }));
-  const tx = await storage.get(key) || 0;
-  storage.set(key, tx + 1);
+  const tx = await storage.get('tx') || 0;
+  await storage.set('tx', tx + 1);
 
-  const difficulty = calcDifficulty(claps);
-  console.log({ difficulty });
-
-  console.time('proof-of-clap')
-  const nonce = await proofOfClap({ url, id, tx }, difficulty);
-  console.timeEnd('proof-of-clap')
+  console.log('Calculating proof of clap...')
+  console.time('PROOF OF CLAP')
+  const nonce = await proofOfClap({ url: urlClass, claps, id, tx });
+  console.timeEnd('PROOF OF CLAP')
 
   // TODO: proof of work
   const response = await fetch(new JSONRequest(urlWithParams(`${api}/update-claps`, { url }), { 
@@ -129,6 +129,7 @@ export class ApplauseButton extends LitElement {
     if (!await storage.get('id')) {
       const userId = new UUID();
       storage.set('id', userId.buffer);
+      storage.set('tx', 0);
     }
 
     getClaps(this.api, this.canonicalUrl).then(claps => {
