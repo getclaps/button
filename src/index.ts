@@ -7,9 +7,7 @@ import { UUID } from 'uuid-class';
 import { StorageArea } from 'kv-storage-polyfill';
 
 import { styles } from './styles';
-import { proofOfClap, checkProofOfClap } from './util.js';
-
-const BASE_DIFFICULTY = 9;
+import { makeKey, proofOfClap, calcDifficulty } from './util.js';
 
 const API = "http://localhost:8787";
 const storage = new StorageArea('applause-button');
@@ -44,10 +42,14 @@ const getClaps = (api: string, url: string) => {
 
 const updateClapsApi = async (api: string, claps: number, url: string) => {
   const id = new UUID(await storage.get('id'));
-  const tx = await storage.get('tx');
-  await storage.set('tx', tx + 1);
 
-  const difficulty = BASE_DIFFICULTY + Math.round(Math.log2(claps));
+  const key = new Uint8Array(await makeKey({ url }));
+  const tx = await storage.get(key) || 0;
+  storage.set(key, tx + 1);
+
+  const difficulty = calcDifficulty(claps);
+  console.log({ difficulty });
+
   console.time('proof-of-clap')
   const nonce = await proofOfClap({ url, id, tx }, difficulty);
   console.timeEnd('proof-of-clap')
@@ -127,7 +129,6 @@ export class ApplauseButton extends LitElement {
     if (!await storage.get('id')) {
       const userId = new UUID();
       storage.set('id', userId.buffer);
-      storage.set('tx', 0);
     }
 
     getClaps(this.api, this.canonicalUrl).then(claps => {
