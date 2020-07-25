@@ -1,5 +1,3 @@
-// import "document-register-element/build/document-register-element";
-
 import { html, svg, LitElement, customElement, query, property } from "lit-element";
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
@@ -110,7 +108,6 @@ export class ApplauseButton extends LitElement {
       return new URL(this.url, window.location.origin).href;
     }
 
-    // TODO: validate real url?
     const linkEl = document.head.querySelector('link[rel=canonical]') as HTMLLinkElement|null;
     if (linkEl) return linkEl.href;
 
@@ -132,7 +129,7 @@ export class ApplauseButton extends LitElement {
       storage.set('tx', 0);
     }
 
-    getClaps(this.api, this.canonicalUrl).then(claps => {
+    getClaps(this.api, this.canonicalUrl).then(({ claps }) => {
       this.loading = false;
       const clapCount = Number(claps);
       if (clapCount > 0) {

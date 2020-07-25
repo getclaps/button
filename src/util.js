@@ -35,7 +35,7 @@ const digest = (message) => digestAB(new TextEncoder().encode(message));
  *   nonce: number,
  * }} param0 
  */
-export async function makeKey({ url, id, tx, nonce }) {
+async function makeKey({ url, id, tx, nonce }) {
   return concatArrayBuffers(
     await digest(url.href),
     new UUID(id.toString()).buffer,
@@ -45,11 +45,11 @@ export async function makeKey({ url, id, tx, nonce }) {
 }
 
 /**
- * @param {ArrayBuffer} hash 
- * @param {number} difficulty 
+ * @param {ArrayBuffer} ab 
+ * @param {number} n 
  */
-function checkZeros(hash, difficulty) {
-  const arr = Array.from(new Uint8Array(hash).subarray(0, Math.ceil(difficulty / 8)))
+function leadingZeros(ab, n) {
+  const arr = Array.from(new Uint8Array(ab).subarray(0, Math.ceil(n / 8)))
     .flatMap(x => [
       (x & 0b10000000) >> 7, 
       (x & 0b01000000) >> 6, 
@@ -58,8 +58,9 @@ function checkZeros(hash, difficulty) {
       (x & 0b00001000) >> 3, 
       (x & 0b00000100) >> 2, 
       (x & 0b00000010) >> 1,
-      (x & 0b00000001)])
-    .slice(0, difficulty)
+      (x & 0b00000001)
+    ])
+    .slice(0, n)
   return arr
     .every(bit => bit === 0);
 }
@@ -67,7 +68,7 @@ function checkZeros(hash, difficulty) {
 /**
  * @param {number} claps 
  */
-export const calcDifficulty = claps => BASE_DIFFICULTY + Math.round(Math.log2(claps));
+const calcDifficulty = claps => BASE_DIFFICULTY + Math.round(Math.log2(claps));
 
 /**
  * @param {{
@@ -85,7 +86,7 @@ export async function proofOfClap({ url, claps, id, tx }) {
   const key = new Uint32Array(await makeKey({ url, id, tx, nonce }));
   let hash = await digestAB(key);
 
-  while (!checkZeros(hash, difficulty)) {
+  while (!leadingZeros(hash, difficulty)) {
     nonce++;
     key[key.length - 1] = nonce;
     hash = await digestAB(key);
@@ -106,5 +107,5 @@ export async function proofOfClap({ url, claps, id, tx }) {
 export async function checkProofOfClap({ url, claps, id, tx, nonce }) {
   const difficulty = calcDifficulty(claps);
   const hash = await digestAB(await makeKey({ url, id, tx, nonce }));
-  return checkZeros(hash, difficulty);
+  return leadingZeros(hash, difficulty);
 }
