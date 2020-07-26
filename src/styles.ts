@@ -5,7 +5,9 @@ export const styles = css`
   -webkit-tap-highlight-color: transparent;
   display: block;
   position: relative;
-  cursor: pointer; }
+  cursor: pointer; 
+}
+
 .style-root {
   position: absolute;
   top: 0;
@@ -69,16 +71,6 @@ export const styles = css`
   .style-root g.sparkle circle {
     opacity: 0;
     stroke-width: 0; }
-  .style-root g.sparkle g:nth-child(1) {
-    transform: rotate(0deg) translateX(10px); }
-  .style-root g.sparkle g:nth-child(2) {
-    transform: rotate(72deg) translateX(10px); }
-  .style-root g.sparkle g:nth-child(3) {
-    transform: rotate(144deg) translateX(10px); }
-  .style-root g.sparkle g:nth-child(4) {
-    transform: rotate(216deg) translateX(10px); }
-  .style-root g.sparkle g:nth-child(5) {
-    transform: rotate(288deg) translateX(10px); }
   .style-root:hover:not(.clapped) .shockwave {
     animation-name: shockwave;
     animation-duration: 1s;
