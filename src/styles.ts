@@ -14,19 +14,6 @@ export const styles = css`
   left: 0;
   right: 0;
   bottom: 0; }
-  // .style-root:after {
-  //   position: absolute;
-  //   top: 0;
-  //   left: 0;
-  //   right: 0;
-  //   bottom: 0;
-  //   content: " ";
-  //   display: block;
-  //   border-radius: 50%;
-  //   opacity: 0.5;
-  //   border: 1px solid; }
-  .style-root:hover:after:not(.clap-limit-exceeded) {
-    border-color: inherit; }
   .style-root.loading {
     cursor: default; }
   .style-root .shockwave {
@@ -50,31 +37,30 @@ export const styles = css`
     opacity: 0.8;
     stroke: none;
     overflow: visible !important; }
-    // .style-root svg g.flat, .style-root svg g.outline {
-    //   transform: translate(3px, 2px); }
     .style-root svg g.flat {
       visibility: hidden; }
     .style-root svg g.outline {
       visibility: visible; }
-  .style-root.clapped svg g.flat {
+  .style-root.clapped:not(.loading) svg g.flat {
     visibility: visible; }
   .style-root.clapped svg g.outline {
     visibility: hidden; }
+  .style-root.loading svg g.outline {
+    visibility: visible; }
   .style-root .count-container {
     position: absolute;
-    top: -50%;
+    top: -2.5em;
     width: 100%;
-    color: gray;
-    // font-weight: bold;
+    color: inherit;
     user-select: none; }
     .style-root .count-container .count {
       text-align: center; }
   .style-root g.sparkle circle {
     opacity: 0;
     stroke-width: 0; }
-  .style-root:hover:not(.clapped) .shockwave {
+  .style-root:not(.clapped) .shockwave {
     animation-name: shockwave;
-    animation-duration: 1.25s;
+    animation-duration: 1.5s;
     animation-iteration-count: infinite;
     animation-timing-function: ease-in; }
   .style-root.clap {
@@ -106,17 +92,17 @@ export const styles = css`
   transform-origin: center; }
 
 .countdown circle {
-  stroke-width: 1px;
+  stroke-width: 2px;
   opacity: 1;
   stroke-linecap: round;
   stroke-dasharray: 308 308;
   transform: rotate(-90deg);
   transform-origin: center; }
 
-.style-root.count .countdown circle {
-  animation-timing-function: linear;
+.style-root.ticking .countdown circle {
+  animation-timing-function: ease;
   animation-name: countdown;
-  animation-duration: 2s; }
+  animation-duration: 2.5s; }
 
 .style-root.loading .countdown {
   animation: 2s linear infinite svg-animation; }
@@ -147,7 +133,7 @@ export const styles = css`
 @keyframes countdown {
   0% {
     stroke-dasharray: 308 308; }
-  33% {
+  25% {
     stroke-dasharray: 308 308; }
   100% {
     stroke-dasharray: 0 308; } }

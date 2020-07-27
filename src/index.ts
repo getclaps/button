@@ -10,6 +10,7 @@ import { JSONRequest, urlWithParams } from './json-request';
 import { proofOfClap } from './util.js';
 
 const API = "http://localhost:8787";
+const TIMER = 2500;
 const ANIM_DELAY = 250;
 
 const storage = new StorageArea('applause-button');
@@ -143,7 +144,7 @@ export class ApplauseButton extends LitElement {
 
     const x = this.bufferedClaps;
     const n = 5 + x;
-    const BASE_MAX_DELAY = 250;
+    const BASE_MAX_DELAY = 300;
     const maxDelay = BASE_MAX_DELAY * (1 - Math.E ** (-x / 25));
     const sparkle = svg`
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 20 20">
@@ -191,7 +192,7 @@ export class ApplauseButton extends LitElement {
 
     const data = await storage.get(url);
     await storage.set(url, { ...data, claps: data.claps + claps });
-  }, 2100);
+  }, TIMER); // MAYBE: Replace with animation finish event!?
 
   private clickCallback = (event: MouseEvent) => {
     if (event.button !== 0) {
@@ -209,10 +210,10 @@ export class ApplauseButton extends LitElement {
       detail: { claps: this.bufferedClaps },
     }));
 
-    toggleClass(this.styleRootEl, "clap", "count");
+    toggleClass(this.styleRootEl, "clap", "ticking");
 
     this.updateClaps();
 
-    setTimeout(() => { this.totalClaps = this.bufferedClaps }, ANIM_DELAY);
+    this.totalClaps = this.bufferedClaps
   }
 }
