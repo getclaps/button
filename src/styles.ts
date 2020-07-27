@@ -98,29 +98,29 @@ export const styles = css`
 
 .countdown {
   fill: none; 
-  transform: scale(1.08108108108);
+  transform: rotateZ(0deg);
   transform-origin: center; }
 
-.countdown path {
+.countdown circle {
   stroke-width: 1px;
   opacity: 1;
   stroke-linecap: round;
-  stroke-dasharray: 282 282;
-  transform: scaleX(-1) rotate(90deg);
+  stroke-dasharray: 308 308;
+  transform: rotate(-90deg);
   transform-origin: center; }
 
-.style-root.count .countdown path {
+.style-root.count .countdown circle {
   animation-timing-function: linear;
   animation-name: countdown;
   animation-duration: 2s; }
 
 @keyframes countdown {
   0% {
-    stroke-dasharray: 282 282; }
+    stroke-dasharray: 308 308; }
   33% {
-    stroke-dasharray: 282 282; }
+    stroke-dasharray: 308 308; }
   100% {
-    stroke-dasharray: 0 282; } }
+    stroke-dasharray: 0 308; } }
 
 @keyframes explode {
   0% {
@@ -141,11 +141,7 @@ export const styles = css`
     transform: scale(1);
     opacity: 0;
     box-shadow: 0 0 50px, inset 0 0 10px; }
-  90% {
-    transform: scale(1);
-    opacity: 0;
-    box-shadow: 0 0 2px, inset 0 0 1px; }
-  100% {
+  90%, 100% {
     transform: scale(1);
     opacity: 0;
     box-shadow: 0 0 2px, inset 0 0 1px; } }
