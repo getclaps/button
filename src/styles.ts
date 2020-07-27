@@ -88,6 +88,9 @@ export const styles = css`
       animation-duration: 0.5s;
       animation-iteration-count: 1; }
 
+#hand-svg {
+  margin-top: 22%;
+  margin-left: 22%; }
 #countdown-svg {
   width: 100%;
   height: 100%;
