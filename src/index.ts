@@ -107,8 +107,6 @@ export class ApplauseButton extends LitElement {
     this.canonicalUrl = this.getCanonicalUrl();
 
     this.loading = true;
-    this.addEventListener('mousedown', this.clickCallback);
-    this.addEventListener('touchstart', this.clickCallback);
 
     if (!await storage.get('id')) {
       const userId = new UUID();
@@ -120,11 +118,6 @@ export class ApplauseButton extends LitElement {
     const { claps } = await getClaps(this.canonicalUrl);
     this.loading = false;
     this.totalClaps = claps;
-  }
-
-  disconnectedCallback() {
-    this.removeEventListener('mousedown', this.clickCallback)
-    this.removeEventListener('touchstart', this.clickCallback)
   }
 
   render() {
@@ -163,6 +156,8 @@ export class ApplauseButton extends LitElement {
 
     return html`
       <div 
+        @mousedown=${!this.loading ? this.clickCallback : null}
+        @touchstart=${!this.loading ? this.clickCallback : null}
         class=${classMap({
           'style-root': true,
           'loading': this.loading,

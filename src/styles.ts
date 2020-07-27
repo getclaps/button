@@ -26,7 +26,7 @@ export const styles = css`
   .style-root:hover:after:not(.clap-limit-exceeded) {
     border-color: inherit; }
   .style-root.loading {
-    opacity: 0.5; }
+    cursor: default; }
   .style-root .shockwave {
     position: absolute;
     top: 0;
