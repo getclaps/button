@@ -14,9 +14,12 @@ const ANIM_DELAY = 250;
 
 const storage = new StorageArea('applause-button');
 
-const getClaps = (api: string, url: string) => {
-  return fetch(new JSONRequest(urlWithParams(`${api}/claps`, { url })))
-    .then(response => response.json());
+const getClaps = async (url: string) => {
+  const response = await fetch(new JSONRequest(urlWithParams('/claps', { url }, API)));
+  if (response.ok && response.headers.get('Content-Type').includes('json')) {
+    return response.json();
+  }
+  throw Error();
 }
 
 const mine = async (claps: number, url: string) => {
@@ -34,9 +37,9 @@ const mine = async (claps: number, url: string) => {
   return { url: href, id, tx, nonce };
 }
 
-const updateClapsApi = async (api: string, claps: number, url: string, id: UUID, tx: number, nonce: number) => {
+const updateClapsApi = async (claps: number, url: string, id: UUID, tx: number, nonce: number) => {
   // TODO: proof of work
-  const response = await fetch(new JSONRequest(urlWithParams(`${api}/claps`, { url }), {
+  const response = await fetch(new JSONRequest(urlWithParams('/claps', { url }, API), {
     method: 'POST',
     body: { claps, id, tx, nonce },
   }));
@@ -113,7 +116,7 @@ export class ApplauseButton extends LitElement {
 
     this.clapped = await storage.get(this.canonicalUrl) != null;
 
-    const { claps } = await getClaps(this.api, this.canonicalUrl);
+    const { claps } = await getClaps(this.canonicalUrl);
     this.loading = false;
     this.totalClaps = claps;
   }
@@ -198,7 +201,7 @@ export class ApplauseButton extends LitElement {
     const { url, id, tx, nonce } = await mine(claps, this.canonicalUrl);
 
     this.loading = true;
-    const { claps: totalClaps } = await updateClapsApi(this.api, claps, url, id, tx, nonce);
+    const { claps: totalClaps } = await updateClapsApi(claps, url, id, tx, nonce);
 
     this.mining = false;
     this.loading = false;

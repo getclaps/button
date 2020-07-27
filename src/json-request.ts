@@ -1,5 +1,5 @@
-export const urlWithParams = (url: string, params?: object) => {
-  const u = new URL(url, self.location.origin);
+export const urlWithParams = (url: string, params?: object, base?: string | URL) => {
+  const u = new URL(url, base || self.location.origin);
   if (params) {
     // @ts-ignore
     u.search = new URLSearchParams([...u.searchParams, ...Object.entries(params)]).toString();
