@@ -85,8 +85,9 @@ export class ApplauseButton extends LitElement {
 
   @property() private totalClaps: number = 0;
   @property() private loading: boolean;
-  @property() private mining: boolean;
   @property() private clapped: boolean = false;
+  @property() private clicking: boolean = false;
+  @property() private bufferedClaps: number = 0;
 
   private canonicalUrl: string;
   private getCanonicalUrl() {
@@ -127,14 +128,6 @@ export class ApplauseButton extends LitElement {
   }
 
   render() {
-    // style properties are set on style-root, which are then inherited by the child elements
-    const mining = svg`
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" id="mining-svg">
-        <g>
-          <path d="M78.75 16.18V1.56a64.1 64.1 0 0 1 47.7 47.7H111.8a49.98 49.98 0 0 0-33.07-33.08zM16.43 49.25H1.8a64.1 64.1 0 0 1 47.7-47.7V16.2a49.98 49.98 0 0 0-33.07 33.07zm33.07 62.32v14.62A64.1 64.1 0 0 1 1.8 78.5h14.63a49.98 49.98 0 0 0 33.07 33.07zm62.32-33.07h14.62a64.1 64.1 0 0 1-47.7 47.7v-14.63a49.98 49.98 0 0 0 33.08-33.07z" />
-          <animateTransform attributeName="transform" type="rotate" from="0 64 64" to="-90 64 64" dur="500ms" repeatCount="indefinite"></animateTransform>
-        </g>
-      </svg>`;
     const hand = svg`
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" id="hand-svg">
         <g class="flat">
@@ -183,28 +176,25 @@ export class ApplauseButton extends LitElement {
       >
         <div class="shockwave"></div>
         <div class="count-container">
-          <div class="count">${formatClaps(this.totalClaps)}</div>
+          <div class="count">${this.clicking ? '+' : ''}${formatClaps(this.totalClaps)}</div>
         </div>
-        ${this.mining ? mining : hand}
+        ${hand}
         ${sparkle}
         ${circle}
       </div>
       `;
   }
 
-  @property() private bufferedClaps: number = 0;
-
   private updateClaps = debounce(async () => {
     const claps = this.bufferedClaps;
     this.bufferedClaps = 0;
-    this.mining = true;
-    const { url, id, tx, nonce } = await mine(claps, this.canonicalUrl);
-
     this.loading = true;
+    const { url, id, tx, nonce } = await mine(claps, this.canonicalUrl);
     const { claps: totalClaps } = await updateClapsApi(claps, url, id, tx, nonce);
 
-    this.mining = false;
     this.loading = false;
+    this.clicking = false;
+    this.styleRootEl.classList.remove('ticking');
     toggleClass(this.styleRootEl, "clap");
 
     setTimeout(() => { this.totalClaps = totalClaps }, ANIM_DELAY);
@@ -221,6 +211,7 @@ export class ApplauseButton extends LitElement {
     event.preventDefault();
 
     this.clapped = true;
+    this.clicking = true;
     this.bufferedClaps++;
 
     this.dispatchEvent(new CustomEvent("clapped", {

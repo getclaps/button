@@ -114,6 +114,32 @@ export const styles = css`
   animation-name: countdown;
   animation-duration: 2s; }
 
+.style-root.loading .countdown {
+  animation: 2s linear infinite svg-animation; }
+.style-root.loading .countdown circle {
+  animation: 1.4s ease-in-out infinite both circle-animation;
+  stroke-dasharray: 308;
+  stroke-dashoffset: 302; }
+
+@keyframes svg-animation {
+  0% {
+    transform: rotateZ(-90deg); }
+  100% {
+    transform: rotateZ(270deg); } }
+
+@keyframes circle-animation {
+  0%,
+  15% {
+    stroke-dashoffset: 280;
+    transform: rotate(0); }
+  50%,
+  65% {
+    stroke-dashoffset: 75;
+    transform: rotate(45deg); }
+  100% {
+    stroke-dashoffset: 280;
+    transform: rotate(360deg); } }
+
 @keyframes countdown {
   0% {
     stroke-dasharray: 308 308; }
