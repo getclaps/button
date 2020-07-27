@@ -8,6 +8,8 @@ export const styles = css`
 .style-root {
   position: absolute;
   cursor: pointer; 
+  fill: var(--applause-button-color, rgb(79,177,186));
+  stroke: var(--applause-button-color, rgb(79,177,186));
   top: 0;
   left: 0;
   right: 0;
@@ -33,6 +35,7 @@ export const styles = css`
     left: 0;
     right: 0;
     bottom: 0;
+    color: var(--applause-button-color, rgb(79,177,186));
     border-radius: 50%; }
   .style-root svg {
     position: absolute;
@@ -94,6 +97,7 @@ export const styles = css`
 #countdown-svg {
   width: 100%;
   height: 100%;
+  stroke: var(--applause-button-color, rgb(79,177,186));
   margin: 0; }
 
 .countdown {

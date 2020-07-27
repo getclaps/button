@@ -163,11 +163,6 @@ export class ApplauseButton extends LitElement {
           'loading': this.loading,
           'clapped': this.clapped,
         })}
-        style=${styleMap({
-          fill: 'var(--applause-button-color, rgb(79,177,186))',
-          stroke: 'var(--applause-button-color, rgb(79,177,186))',
-          color: 'var(--applause-button-color, rgb(79,177,186))',
-        })}
       >
         <div class="shockwave"></div>
         <div class="count-container">
