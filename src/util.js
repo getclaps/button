@@ -32,16 +32,14 @@ const digest = (message) => sha256(new TextEncoder().encode(message));
  * @param {{
  *   url: URL,
  *   id: UUID|string,
- *   tx: number,
  *   claps: number,
  *   nonce: number,
  * }} param0 
  */
-async function makeKey({ url, id, tx, claps, nonce }) {
+async function makeKey({ url, id, claps, nonce }) {
   return concatArrayBuffers(
     await digest(url.href),
     new UUID(id.toString()).buffer,
-    new Uint32Array([tx]).buffer,
     new Uint32Array([claps]).buffer,
     new Uint32Array([nonce]).buffer,
   );
@@ -72,16 +70,15 @@ const calcDifficulty = claps => BASE_DIFFICULTY + Math.round(Math.log2(BASE_CLAP
  * @param {{
  *   url: URL,
  *   id: UUID|string,
- *   tx: number,
  *   claps: number,
  * }} param0 
  */
-export async function proofOfClap({ url, claps, id, tx }) {
+export async function proofOfClap({ url, claps, id }) {
   const difficulty = calcDifficulty(claps);
 
   let nonce = 0;
 
-  const key = new Uint32Array(await makeKey({ url, id, tx, claps, nonce }));
+  const key = new Uint32Array(await makeKey({ url, id, claps, nonce }));
   let hash = await sha256(key);
 
   while (!leadingZeros(hash, difficulty)) {
@@ -98,12 +95,11 @@ export async function proofOfClap({ url, claps, id, tx }) {
  *   url: URL,
  *   claps: number,
  *   id: UUID|string,
- *   tx: number,
  *   nonce: number,
  * }} param0 
  */
-export async function checkProofOfClap({ url, claps, id, tx, nonce }) {
+export async function checkProofOfClap({ url, claps, id, nonce }) {
   const difficulty = calcDifficulty(claps);
-  const hash = await sha256(await makeKey({ url, id, tx, claps, nonce }));
+  const hash = await sha256(await makeKey({ url, id, claps, nonce }));
   return leadingZeros(hash, difficulty);
 }
