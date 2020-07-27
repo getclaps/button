@@ -28,7 +28,7 @@ const mine = async (claps: number, url: string) => {
   urlClass.search = '';
   const { href } = urlClass;
 
-  const id = new UUID(await storage.get('id'));
+  const id = new UUID();
 
   const { tx, ...data } = await storage.get(href) || { tx: 0, claps: 0 };
   await storage.set(href, { ...data, tx: tx + 1 });
@@ -108,11 +108,6 @@ export class ApplauseButton extends LitElement {
     this.canonicalUrl = this.getCanonicalUrl();
 
     this.loading = true;
-
-    if (!await storage.get('id')) {
-      const userId = new UUID();
-      storage.set('id', userId.buffer);
-    }
 
     this.clapped = await storage.get(this.canonicalUrl) != null;
 
