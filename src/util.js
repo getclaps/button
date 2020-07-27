@@ -1,6 +1,7 @@
 import { UUID } from "uuid-class";
 
 const BASE_DIFFICULTY = 8;
+const BASE_CLAPS = 15;
 
 /**
  * @param  {...ArrayBuffer} abs 
@@ -18,28 +19,30 @@ function concatArrayBuffers(...abs) {
 }
 
 /**
- * @param {Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | ArrayBuffer} message 
+ * @param {Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | ArrayBuffer} data 
  */
-const digestAB = (message) => crypto.subtle.digest('SHA-256', message)
+const sha256 = (data) => crypto.subtle.digest('SHA-256', data)
 
 /**
  * @param {string} message 
  */
-const digest = (message) => digestAB(new TextEncoder().encode(message));
+const digest = (message) => sha256(new TextEncoder().encode(message));
 
 /**
  * @param {{
  *   url: URL,
  *   id: UUID|string,
  *   tx: number,
+ *   claps: number,
  *   nonce: number,
  * }} param0 
  */
-async function makeKey({ url, id, tx, nonce }) {
+async function makeKey({ url, id, tx, claps, nonce }) {
   return concatArrayBuffers(
     await digest(url.href),
     new UUID(id.toString()).buffer,
     new Uint32Array([tx]).buffer,
+    new Uint32Array([claps]).buffer,
     new Uint32Array([nonce]).buffer,
   );
 }
@@ -68,30 +71,28 @@ function leadingZeros(ab, n) {
 /**
  * @param {number} claps 
  */
-const calcDifficulty = claps => BASE_DIFFICULTY + Math.round(Math.log2(15 + claps));
+const calcDifficulty = claps => BASE_DIFFICULTY + Math.round(Math.log2(BASE_CLAPS + claps));
 
 /**
  * @param {{
  *   url: URL,
- *   claps: number,
  *   id: UUID|string,
  *   tx: number,
+ *   claps: number,
  * }} param0 
  */
 export async function proofOfClap({ url, claps, id, tx }) {
   const difficulty = calcDifficulty(claps);
 
-  console.log(`Calculating proof of clap... (${difficulty})`);
-
   let nonce = 0;
 
-  const key = new Uint32Array(await makeKey({ url, id, tx, nonce }));
-  let hash = await digestAB(key);
+  const key = new Uint32Array(await makeKey({ url, id, tx, claps, nonce }));
+  let hash = await sha256(key);
 
   while (!leadingZeros(hash, difficulty)) {
     nonce++;
     key[key.length - 1] = nonce;
-    hash = await digestAB(key);
+    hash = await sha256(key);
   }
 
   return nonce;
@@ -108,6 +109,6 @@ export async function proofOfClap({ url, claps, id, tx }) {
  */
 export async function checkProofOfClap({ url, claps, id, tx, nonce }) {
   const difficulty = calcDifficulty(claps);
-  const hash = await digestAB(await makeKey({ url, id, tx, nonce }));
+  const hash = await sha256(await makeKey({ url, id, tx, claps, nonce }));
   return leadingZeros(hash, difficulty);
 }
