@@ -52,20 +52,15 @@ async function makeKey({ url, id, tx, claps, nonce }) {
  * @param {number} n 
  */
 function leadingZeros(ab, n) {
-  const arr = Array.from(new Uint8Array(ab).subarray(0, Math.ceil(n / 8)))
-    .flatMap(x => [
-      (x & 0b10000000) >> 7, 
-      (x & 0b01000000) >> 6, 
-      (x & 0b00100000) >> 5, 
-      (x & 0b00010000) >> 4,
-      (x & 0b00001000) >> 3, 
-      (x & 0b00000100) >> 2, 
-      (x & 0b00000010) >> 1,
-      (x & 0b00000001)
-    ])
-    .slice(0, n)
-  return arr
-    .every(bit => bit === 0);
+  const u8 = new Uint8Array(ab);
+  const nb = Math.ceil(n / 8);
+  for (let i = 0; i < nb; i++) {
+    const ni = Math.min(8, n - i * 8);
+    for (let j = 0; j < ni; j++) {
+      if (((u8[i] >> (7 - j)) & 0b00000001) !== 0) return false;
+    }
+  }
+  return true;
 }
 
 /**
