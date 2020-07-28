@@ -29,20 +29,15 @@ const mine = async (claps: number, url: string) => {
   const { href } = urlClass;
 
   const id = new UUID();
+  const nonce = await proofOfClap({ url: urlClass, claps, id });
 
-  const { tx, ...data } = await storage.get(href) || { tx: 0, claps: 0 };
-  await storage.set(href, { ...data, tx: tx + 1 });
-
-  const nonce = await proofOfClap({ url: urlClass, claps, id, tx });
-
-  return { url: href, id, tx, nonce };
+  return { url: href, id, nonce };
 }
 
-const updateClapsApi = async (claps: number, url: string, id: UUID, tx: number, nonce: number) => {
-  // TODO: proof of work
+const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: number) => {
   const response = await fetch(new JSONRequest(urlWithParams('/claps', { url }, API), {
     method: 'POST',
-    body: { claps, id, tx, nonce },
+    body: { claps, id, nonce },
   }));
   return response.json();
 };
@@ -175,8 +170,8 @@ export class ApplauseButton extends LitElement {
     const claps = this.bufferedClaps;
     this.bufferedClaps = 0;
     this.loading = true;
-    const { url, id, tx, nonce } = await mine(claps, this.canonicalUrl);
-    const { claps: totalClaps } = await updateClapsApi(claps, url, id, tx, nonce);
+    const { url, id, nonce } = await mine(claps, this.canonicalUrl);
+    const { claps: totalClaps } = await updateClapsApi(claps, url, id, nonce);
 
     this.loading = false;
     this.clicking = false;
@@ -185,7 +180,7 @@ export class ApplauseButton extends LitElement {
 
     setTimeout(() => { this.totalClaps = totalClaps }, ANIM_DELAY);
 
-    const data = await storage.get(url);
+    const data = await storage.get(url) || { claps: 0 };
     await storage.set(url, { ...data, claps: data.claps + claps });
   }, TIMER); // MAYBE: Replace with animation finish event!?
 
