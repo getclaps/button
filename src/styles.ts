@@ -7,14 +7,24 @@ export const styles = css`
   position: relative; }
 .style-root {
   position: absolute;
-  cursor: pointer; 
   fill: var(--applause-button-color, rgb(79,177,186));
   stroke: var(--applause-button-color, rgb(79,177,186));
   top: 0;
   left: 0;
   right: 0;
   bottom: 0; }
-  .style-root.loading {
+  .style-root button {
+    cursor: pointer; 
+    border: none;
+    background: none;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; }
+  .style-root.loading button {
     cursor: default; }
   .style-root .shockwave {
     position: absolute;

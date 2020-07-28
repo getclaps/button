@@ -147,8 +147,6 @@ export class ApplauseButton extends LitElement {
 
     return html`
       <div 
-        @mousedown=${!this.loading ? this.clickCallback : null}
-        @touchstart=${!this.loading ? this.clickCallback : null}
         class=${classMap({
           'style-root': true,
           'loading': this.loading,
@@ -162,6 +160,10 @@ export class ApplauseButton extends LitElement {
         ${hand}
         ${sparkle}
         ${circle}
+        <button
+          @mousedown=${!this.loading ? this.clickCallback : null}
+          @touchstart=${!this.loading ? this.clickCallback : null}
+        ></button>
       </div>
       `;
   }
