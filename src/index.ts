@@ -127,7 +127,7 @@ export class ApplauseButton extends LitElement {
     const circle = svg`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" id="countdown-svg" style=${styleMap({ stroke: 'var(--applause-button-color, rgb(79,177,186))' })}>
       <g class="countdown">
-        <circle cx="50" cy="50" r="49"/>
+        <circle cx="50" cy="50" r="48"/>
       </g>
     </svg>
     `;
@@ -135,7 +135,7 @@ export class ApplauseButton extends LitElement {
     const x = this.bufferedClaps;
     const n = 5 + x;
     const BASE_MAX_DELAY = 300;
-    const maxDelay = BASE_MAX_DELAY * (1 - Math.E ** (-x / 25));
+    const maxDelay = BASE_MAX_DELAY * (1 - Math.E ** (-x / 15));
     const sparkle = svg`
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 20 20">
         <g class="sparkle">

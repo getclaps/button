@@ -153,7 +153,7 @@ export const styles = css`
     transform: scale(1);
     opacity: 1; 
     box-shadow: 0 0 2px, inset 0 0 1px; }
-  89.9% {
+  89.99% {
     transform: scale(1);
     opacity: 0;
     box-shadow: 0 0 50px, inset 0 0 10px; }
