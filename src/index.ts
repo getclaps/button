@@ -15,6 +15,11 @@ const ANIM_DELAY = 250;
 
 const storage = new StorageArea('applause-button');
 
+interface ClapData {
+  url: string;
+  claps: number;
+}
+
 const getClaps = async (url: string) => {
   const response = await fetch(new JSONRequest(urlWithParams('/claps', { url }, API)));
   if (response.ok && response.headers.get('Content-Type').includes('json')) {
@@ -99,6 +104,7 @@ export class ApplauseButton extends LitElement {
 
   async connectedCallback() {
     super.connectedCallback();
+    this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
 
     this.canonicalUrl = this.getCanonicalUrl();
 
@@ -109,6 +115,19 @@ export class ApplauseButton extends LitElement {
     const { claps } = await getClaps(this.canonicalUrl);
     this.loading = false;
     this.totalClaps = claps;
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
+  }
+
+  private clappedCallback = (e: CustomEvent<ClapData>) => {
+    if (e.target !== this && e.detail.url === this.canonicalUrl) {
+      this.clapped = true;
+      this.totalClaps = e.detail.claps;
+      toggleClass(this.styleRootEl, "clap");
+    }
   }
 
   render() {
@@ -180,6 +199,11 @@ export class ApplauseButton extends LitElement {
     this.styleRootEl.classList.remove('ticking');
     toggleClass(this.styleRootEl, "clap");
 
+    this.dispatchEvent(new CustomEvent<ClapData>("clapped", {
+      bubbles: true,
+      detail: { claps: totalClaps, url },
+    }));
+
     setTimeout(() => { this.totalClaps = totalClaps }, ANIM_DELAY);
 
     const data = await storage.get(url) || { claps: 0 };
@@ -196,11 +220,6 @@ export class ApplauseButton extends LitElement {
     this.clapped = true;
     this.clicking = true;
     this.bufferedClaps++;
-
-    this.dispatchEvent(new CustomEvent("clapped", {
-      bubbles: true,
-      detail: { claps: this.bufferedClaps },
-    }));
 
     toggleClass(this.styleRootEl, "clap", "ticking");
 
