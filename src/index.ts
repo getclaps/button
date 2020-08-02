@@ -15,17 +15,24 @@ const ANIM_DELAY = 250;
 
 const storage = new StorageArea('applause-button');
 
+const refCount = new Map<string, number>();
+const fetchMap = new Map<string, Promise<Response>>();
+
 interface ClapData {
   url: string;
   claps: number;
 }
 
 const getClaps = async (url: string) => {
-  const response = await fetch(new JSONRequest(urlWithParams('/claps', { url }, API)));
+  const responseP = fetchMap.get(url) || fetch(new JSONRequest(urlWithParams('/claps', { url }, API)));
+  fetchMap.set(url, responseP);
+  const response = await responseP;
   if (response.ok && response.headers.get('Content-Type').includes('json')) {
-    return response.json();
+    return response.clone().json();
+  } else {
+    fetchMap.delete(url);
+    throw Error();
   }
-  throw Error();
 }
 
 const mine = async (claps: number, url: string) => {
@@ -40,11 +47,17 @@ const mine = async (claps: number, url: string) => {
 }
 
 const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: number) => {
-  const response = await fetch(new JSONRequest(urlWithParams('/claps', { url }, API), {
+  const responseP = fetch(new JSONRequest(urlWithParams('/claps', { url }, API), {
     method: 'POST',
     body: { claps, id, nonce },
   }));
-  return response.json();
+  const response = await responseP;
+  if (response.ok && response.headers.get('Content-Type').includes('json')) {
+    fetchMap.set(url, responseP);
+    return response.clone().json();
+  } else {
+    throw Error();
+  }
 };
 
 const arrayOfSize = size => [...new Array(size).keys()]
@@ -108,6 +121,7 @@ export class ApplauseButton extends LitElement {
     this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
 
     this.canonicalUrl = this.getCanonicalUrl();
+    refCount.set(this.canonicalUrl, 1 + (refCount.get(this.canonicalUrl) || 0));
 
     this.loading = true;
 
@@ -121,6 +135,14 @@ export class ApplauseButton extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
+
+    const cnt = refCount.get(this.canonicalUrl) - 1;
+    if (cnt > 0) {
+      refCount.set(this.canonicalUrl, cnt);
+    } else {
+      refCount.delete(this.canonicalUrl);
+      fetchMap.delete(this.canonicalUrl);
+    }
   }
 
   private clappedCallback = (e: CustomEvent<ClapData>) => {
