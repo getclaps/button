@@ -92,11 +92,12 @@ export class ApplauseButton extends LitElement {
 
   private canonicalUrl: string;
   private getCanonicalUrl() {
+    const linkEl = document.head.querySelector('link[rel=canonical]') as HTMLLinkElement | null;
+
     if (this.url) {
-      return new URL(this.url, window.location.origin).href;
+      return new URL(this.url, linkEl?.href ?? window.location.origin).href;
     }
 
-    const linkEl = document.head.querySelector('link[rel=canonical]') as HTMLLinkElement | null;
     if (linkEl) return linkEl.href;
 
     return window.location.href;
