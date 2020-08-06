@@ -21,7 +21,14 @@ const fetchMap = new Map<string, Promise<Response>>();
 interface ClapData {
   url: string;
   claps: number;
+  totalClaps: number;
 }
+
+const withoutHash = (href) => {
+  const parentURL = new URL(href);
+  parentURL.hash = '';
+  return parentURL.href;
+};
 
 const getClaps = async (url: string) => {
   const responseP = fetchMap.get(url) || fetch(new JSONRequest(urlWithParams('/claps', { url }, API)));
@@ -46,7 +53,7 @@ const mine = async (claps: number, url: string) => {
   return { url: href, id, nonce };
 }
 
-const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: number) => {
+const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: number): Promise<{ claps: number }> => {
   const responseP = fetch(new JSONRequest(urlWithParams('/claps', { url }, API), {
     method: 'POST',
     body: { claps, id, nonce },
@@ -90,7 +97,6 @@ export class ApplauseButton extends LitElement {
   el: HTMLElement = this;
 
   @query('.style-root') private styleRootEl: HTMLElement;
-  @query('.sparkle') private sparkleEl: SVGElement;
 
   @property({ type: Boolean, reflect: true }) multiClap: boolean = true;
 
@@ -145,10 +151,10 @@ export class ApplauseButton extends LitElement {
     }
   }
 
-  private clappedCallback = (e: CustomEvent<ClapData>) => {
-    if (e.target !== this && e.detail.url === this.canonicalUrl) {
+  private clappedCallback = ({ target, detail: { url, claps }}: CustomEvent<ClapData>) => {
+    if (target !== this && url === this.canonicalUrl || withoutHash(url) === this.canonicalUrl) {
       this.clapped = true;
-      this.totalClaps = e.detail.claps;
+      this.totalClaps += claps;
       toggleClass(this.styleRootEl, "clap");
     }
   }
@@ -224,7 +230,7 @@ export class ApplauseButton extends LitElement {
 
     this.dispatchEvent(new CustomEvent<ClapData>("clapped", {
       bubbles: true,
-      detail: { claps: totalClaps, url },
+      detail: { claps, totalClaps, url },
     }));
 
     setTimeout(() => { this.totalClaps = totalClaps }, ANIM_DELAY);
