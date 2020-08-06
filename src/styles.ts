@@ -2,9 +2,12 @@ import { css } from 'lit-element';
 
 export const styles = css`
 :host {
-  -webkit-tap-highlight-color: transparent;
   display: block;
-  position: relative; }
+  position: relative;
+  width: 5em;
+  height: 5em;
+  margin: 5em auto;
+}
 .style-root {
   position: absolute;
   fill: var(--applause-button-color, rgb(79,177,186));
@@ -14,6 +17,7 @@ export const styles = css`
   right: 0;
   bottom: 0; }
   .style-root button {
+    -webkit-tap-highlight-color: transparent;
     cursor: pointer; 
     border: none;
     background: none;
