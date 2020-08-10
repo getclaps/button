@@ -2,7 +2,7 @@ import { html, svg, LitElement, customElement, query, property } from "lit-eleme
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
 import { repeat } from 'lit-html/directives/repeat';
-import { UUID } from 'uuid-class';
+import { UUID } from 'uuid-class/mjs';
 import { StorageArea } from 'kv-storage-polyfill';
 
 import { styles } from './styles';
