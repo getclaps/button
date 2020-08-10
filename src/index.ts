@@ -31,15 +31,24 @@ const withoutHash = (href) => {
 };
 
 const getClaps = async (url: string) => {
-  const responseP = fetchMap.get(url) || fetch(new JSONRequest(urlWithParams('/claps', { url }, API)));
-  fetchMap.set(url, responseP);
-  const response = await responseP;
-  if (response.ok && response.headers.get('Content-Type').includes('json')) {
-    return response.clone().json();
-  } else {
-    fetchMap.delete(url);
-    throw Error();
+  const parentHref = withoutHash(url);
+
+  let indexPromise = fetchMap.get(parentHref);
+  if (!indexPromise) {
+    fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
+      const response = await fetch(new JSONRequest(urlWithParams('/claps', { url: parentHref }, API)));
+      if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
+        return await response.json();
+      } else if (response.status === 404) {
+        return {};
+      }
+      fetchMap.delete(parentHref);
+      throw Error();
+    })());
   }
+
+  const index = await indexPromise;
+  return index[url] || { claps: 0 }
 }
 
 const mine = async (claps: number, url: string) => {
@@ -60,7 +69,7 @@ const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: numbe
   }));
   const response = await responseP;
   if (response.ok && response.headers.get('Content-Type').includes('json')) {
-    fetchMap.set(url, responseP);
+    fetchMap.delete(withoutHash(url));
     return response.clone().json();
   } else {
     throw Error();
@@ -142,12 +151,13 @@ export class ApplauseButton extends LitElement {
     super.disconnectedCallback();
     this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
 
-    const cnt = refCount.get(this.canonicalUrl) - 1;
+    const parentHref = withoutHash(this.canonicalUrl);
+    const cnt = refCount.get(parentHref) - 1;
     if (cnt > 0) {
-      refCount.set(this.canonicalUrl, cnt);
+      refCount.set(parentHref, cnt);
     } else {
-      refCount.delete(this.canonicalUrl);
-      fetchMap.delete(this.canonicalUrl);
+      refCount.delete(parentHref);
+      fetchMap.delete(parentHref);
     }
   }
 
