@@ -107,10 +107,9 @@ export class ApplauseButton extends LitElement {
 
   @query('.style-root') private styleRootEl: HTMLElement;
 
-  @property({ type: Boolean, reflect: true }) multiClap: boolean = true;
+  @property({ type: Boolean, reflect: true }) noWave: boolean = false;
 
   @property({ type: String, reflect: false }) url: string;
-  @property({ type: String, reflect: false }) api: string = API;
 
   @property() private totalClaps: number = 0;
   @property() private loading: boolean;
@@ -185,7 +184,7 @@ export class ApplauseButton extends LitElement {
     const circle = svg`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" id="countdown-svg" style=${styleMap({ stroke: 'var(--applause-button-color, rgb(79,177,186))' })}>
       <g class="countdown">
-        <circle cx="50" cy="50" r="48"/>
+        <circle cx="50" cy="50" r="49"/>
       </g>
     </svg>
     `;
@@ -209,6 +208,7 @@ export class ApplauseButton extends LitElement {
       'style-root': true,
       'loading': this.loading,
       'clapped': this.clapped,
+      'no-shockwave': this.noWave,
     })}
       >
         <div class="shockwave"></div>
