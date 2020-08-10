@@ -151,7 +151,7 @@ export class ApplauseButton extends LitElement {
     }
   }
 
-  private clappedCallback = ({ target, detail: { url, claps }}: CustomEvent<ClapData>) => {
+  private clappedCallback = ({ target, detail: { url, claps } }: CustomEvent<ClapData>) => {
     if (target !== this && url === this.canonicalUrl || withoutHash(url) === this.canonicalUrl) {
       this.clapped = true;
       this.totalClaps += claps;
@@ -196,10 +196,10 @@ export class ApplauseButton extends LitElement {
     return html`
       <div 
         class=${classMap({
-          'style-root': true,
-          'loading': this.loading,
-          'clapped': this.clapped,
-        })}
+      'style-root': true,
+      'loading': this.loading,
+      'clapped': this.clapped,
+    })}
       >
         <div class="shockwave"></div>
         <div class="count-container">
