@@ -36,7 +36,7 @@ const getClaps = async (url: string) => {
   let indexPromise = fetchMap.get(parentHref);
   if (!indexPromise) {
     fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
-      const response = await fetch(new JSONRequest(urlWithParams('/claps', { url: parentHref }, API)));
+      const response = await fetch(new JSONRequest(urlWithParams('/views', { url: parentHref }, API), { method: 'POST' }));
       if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
         return await response.json();
       } else if (response.status === 404) {
@@ -68,7 +68,7 @@ const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: numbe
     body: { claps, id, nonce },
   }));
   const response = await responseP;
-  if (response.ok && response.headers.get('Content-Type').includes('json')) {
+  if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
     fetchMap.delete(withoutHash(url));
     return response.clone().json();
   } else {
