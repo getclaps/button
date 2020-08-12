@@ -6,10 +6,10 @@ import { UUID } from 'uuid-class/mjs';
 import { StorageArea } from 'kv-storage-polyfill';
 
 import { styles } from './styles';
-import { JSONRequest, urlWithParams } from './json-request';
+import { ParamsURL, jsonFetch } from './json-request';
 import { proofOfClap } from './util.js';
 
-const API = "http://localhost:8787";
+const WORKER_DOMAIN = "http://localhost:8787";
 const TIMER = 2500;
 const ANIM_DELAY = 250;
 
@@ -36,7 +36,7 @@ const getClaps = async (url: string) => {
   let indexPromise = fetchMap.get(parentHref);
   if (!indexPromise) {
     fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
-      const response = await fetch(new JSONRequest(urlWithParams('/views', { url: parentHref }, API), { method: 'POST' }));
+      const response = await jsonFetch(new ParamsURL('/views', { url: parentHref }, WORKER_DOMAIN), { method: 'POST' });
       if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
         return await response.json();
       } else if (response.status === 404) {
@@ -63,10 +63,10 @@ const mine = async (claps: number, url: string) => {
 }
 
 const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: number): Promise<{ claps: number }> => {
-  const responseP = fetch(new JSONRequest(urlWithParams('/claps', { url }, API), {
+  const responseP = jsonFetch(new ParamsURL('/claps', { url }, WORKER_DOMAIN), {
     method: 'POST',
     body: { claps, id, nonce },
-  }));
+  });
   const response = await responseP;
   if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
     fetchMap.delete(withoutHash(url));
