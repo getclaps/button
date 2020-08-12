@@ -3,6 +3,8 @@ layout: welcome
 selected_posts:
   - _posts/2020-06-01-improve-seo-ranking.md
   - _posts/2020-06-02-gdpr-compliant-analytics.md
+worker_domain: http://localhost:8787
+price_id: price_1HF9nBAKMWLvHNfJlxejlWKp
 ---
 
 # Clap Button
@@ -10,15 +12,15 @@ selected_posts:
 <applause-button id="app-button"></applause-button>
 
 A zero-config clap button that combines analytics   
-with Cookie Clicker-levels of engagement[^1].
+with Cookie Clicker-levels of engagement. [Learn More](#improve-seo-ranking).
 {:.lead.centered}
 
-<form method="POST" action="http://localhost:8787/stripe/forward" class="centered mb4">
+<form method="POST" action="{{ page.worker_domain }}/stripe/forward" class="centered mb4">
   <input type="hidden" name="mode" value="subscription"/>
   <input type="hidden" name="payment_method_types[0]" value="card"/>
   <input type="hidden" name="line_items[0][quantity]" value="1"/>
-  <input type="hidden" name="line_items[0][price]" value="price_1HBfyyAKMWLvHNfJHO3TVUYM"/>
-  <input type="hidden" name="success_url" value="http://localhost:8787/dashboard?session_id={CHECKOUT_SESSION_ID}"/>
+  <input type="hidden" name="line_items[0][price]" value="{{ page.price_id }}"/>
+  <input type="hidden" name="success_url" value="{{ page.worker_domain }}/new-dashboard?session_id={CHECKOUT_SESSION_ID}"/>
   <input type="hidden" name="cancel_url" value="{{ site.url }}{{ site.baseurl }}/"/>
   <button type="submit" class="btn btn-primary">Subscribe</button>
 </form>
