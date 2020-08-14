@@ -10,8 +10,8 @@ export const styles = css`
 }
 .style-root {
   position: absolute;
-  fill: var(--applause-button-color, var(--accent-color, rgb(79,177,186)));
-  stroke: var(--applause-button-color, var(--accent-color, rgb(79,177,186)));
+  fill: var(--applause-button-color, var(--theme-color, rgb(79,177,186)));
+  stroke: var(--applause-button-color, var(--theme-color, rgb(79,177,186)));
   top: 0;
   left: 0;
   right: 0;
@@ -28,7 +28,7 @@ export const styles = css`
     left: 0;
     width: 100%;
     height: 100%; }
-  .style-root.loading button {
+  .style-root button:disabled {
     cursor: default; }
   .style-root .shockwave {
     position: absolute;
@@ -36,7 +36,7 @@ export const styles = css`
     left: 0;
     right: 0;
     bottom: 0;
-    color: var(--applause-button-color, var(--accent-color, rgb(79,177,186)));
+    color: var(--applause-button-color, var(--theme-color, rgb(79,177,186)));
     border-radius: 50%; }
   .style-root svg {
     position: absolute;
@@ -63,11 +63,16 @@ export const styles = css`
     visibility: visible; }
   .style-root .count-container {
     position: absolute;
-    top: -2.5em;
     width: 100%;
     color: inherit;
     user-select: none; }
+  .style-root .count-container.container-top {
+    top: -2.5em; }
+  .style-root .count-container.container-bottom {
+    bottom: -2.5em; }
     .style-root .count-container .count {
+      width: 200%;
+      margin-left: -50%;
       text-align: center; }
   .style-root g.sparkle circle {
     opacity: 0;
@@ -86,8 +91,12 @@ export const styles = css`
       animation-name: explode;
       animation-duration: 0.5s;
       animation-iteration-count: 1; }
-    .style-root.clap .count {
+    .style-root.clap .container-top .count {
       animation-name: hideThenShow;
+      animation-duration: 0.5s;
+      animation-iteration-count: 1; }
+    .style-root.clap .container-bottom .count {
+      animation-name: hideThenShowBottom;
       animation-duration: 0.5s;
       animation-iteration-count: 1; }
 
@@ -97,7 +106,7 @@ export const styles = css`
 #countdown-svg {
   width: 100%;
   height: 100%;
-  stroke: var(--applause-button-color, var(--accent-color, rgb(79,177,186)));
+  stroke: var(--applause-button-color, var(--theme-color, rgb(79,177,186)));
   margin: 0; }
 
 .countdown {
@@ -195,6 +204,22 @@ export const styles = css`
     transform: translateY(10px); }
   80% {
     transform: translateY(10px);
+    opacity: 0; }
+  100% {
+    opacity: 1;
+    transform: translateY(0); } }
+
+@keyframes hideThenShowBottom {
+  0% {
+    opacity: 1;
+    transform: translateY(0); }
+  20% {
+    opacity: 0;
+    transform: translateY(10px); }
+  50% {
+    transform: translateY(-10px); }
+  80% {
+    transform: translateY(-10px);
     opacity: 0; }
   100% {
     opacity: 1;

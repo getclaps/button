@@ -9,7 +9,8 @@ import { styles } from './styles';
 import { ParamsURL, jsonFetch } from './json-request';
 import { proofOfClap } from './util.js';
 
-const WORKER_DOMAIN = "http://localhost:8787";
+const API = "http://localhost:8787";
+const WEBSITE = "http://localhost:4002";
 const TIMER = 2500;
 const ANIM_DELAY = 250;
 
@@ -36,12 +37,14 @@ const getClaps = async (url: string) => {
   let indexPromise = fetchMap.get(parentHref);
   if (!indexPromise) {
     fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
-      const response = await jsonFetch(new ParamsURL('/views', { url: parentHref }, WORKER_DOMAIN), { method: 'POST' });
+      const response = await jsonFetch(new ParamsURL('/views', { url: parentHref }, API), { method: 'POST' });
       if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
         return await response.json();
+      } else if (response.status === 402) {
+        throw response;
       } else if (response.status === 404) {
         return {};
-      }
+      } 
       fetchMap.delete(parentHref);
       throw Error();
     })());
@@ -63,7 +66,7 @@ const mine = async (claps: number, url: string) => {
 }
 
 const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: number): Promise<{ claps: number }> => {
-  const responseP = jsonFetch(new ParamsURL('/claps', { url }, WORKER_DOMAIN), {
+  const responseP = jsonFetch(new ParamsURL('/claps', { url }, API), {
     method: 'POST',
     body: { claps, id, nonce },
   });
@@ -78,7 +81,7 @@ const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: numbe
 
 const arrayOfSize = size => [...new Array(size).keys()]
 
-const formatClaps = claps => claps.toLocaleString("en");
+const formatClaps = claps => claps != null ? claps.toLocaleString("en") : '';
 
 // toggle a CSS class to re-trigger animations
 const toggleClass = (element, ...cls) => {
@@ -99,6 +102,11 @@ const debounce = (fn, delay) => {
   };
 };
 
+enum TextPlacement {
+  Top = "top",
+  Bottom = "bottom",
+}
+
 @customElement('applause-button')
 export class ApplauseButton extends LitElement {
   static styles = styles;
@@ -107,25 +115,29 @@ export class ApplauseButton extends LitElement {
 
   @query('.style-root') private styleRootEl: HTMLElement;
 
+  @property({ type: String, reflect: true, attribute: 'text-placement' }) textPlacement: TextPlacement = TextPlacement.Top;
   @property({ type: Boolean, reflect: true }) noWave: boolean = false;
+  // @property({ type: Boolean, reflect: true }) useLocation: boolean = false;
 
   @property({ type: String, reflect: false }) url: string;
 
-  @property() private totalClaps: number = 0;
+  @property() private totalClaps: number;
   @property() private loading: boolean;
   @property() private clapped: boolean = false;
   @property() private clicking: boolean = false;
   @property() private bufferedClaps: number = 0;
+  @property() private ready: boolean = false;
+  @property() private paymentRequired: boolean = false;
 
   private canonicalUrl: string;
   private getCanonicalUrl() {
-    const linkEl = document.head.querySelector('link[rel=canonical]') as HTMLLinkElement | null;
+    // const linkEl = this.useLocation ? null : document.head.querySelector('link[rel=canonical]') as HTMLLinkElement | null;
 
     if (this.url) {
-      return new URL(this.url, linkEl?.href ?? window.location.origin).href;
+      return new URL(this.url, /* linkEl?.href ?? */ window.location.origin).href;
     }
 
-    if (linkEl) return linkEl.href;
+    // if (linkEl) return linkEl.href;
 
     return window.location.href;
   }
@@ -137,13 +149,26 @@ export class ApplauseButton extends LitElement {
     this.canonicalUrl = this.getCanonicalUrl();
     refCount.set(this.canonicalUrl, 1 + (refCount.get(this.canonicalUrl) || 0));
 
+    // const themeColorEl = document.head.querySelector('meta[name=theme-color]') as HTMLMetaElement | null;
+    // if (themeColorEl) {
+    //   this.el.style.setProperty('--theme-color', themeColorEl.content);
+    // }
+
     this.loading = true;
 
     this.clapped = await storage.get(this.canonicalUrl) != null;
 
-    const { claps } = await getClaps(this.canonicalUrl);
-    this.loading = false;
-    this.totalClaps = claps;
+    try {
+      const { claps } = await getClaps(this.canonicalUrl);
+      this.loading = false;
+      this.ready = true;
+      this.totalClaps = claps;
+    } catch (err) {
+      this.loading = false;
+      this.ready = false;
+      this.el.style.setProperty('--applause-button-color', 'indianred');
+      this.paymentRequired = err.status === 402;
+    }
   }
 
   disconnectedCallback() {
@@ -182,7 +207,7 @@ export class ApplauseButton extends LitElement {
       </svg>`;
 
     const circle = svg`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" id="countdown-svg" style=${styleMap({ stroke: 'var(--applause-button-color, rgb(79,177,186))' })}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" id="countdown-svg">
       <g class="countdown">
         <circle cx="50" cy="50" r="49"/>
       </g>
@@ -208,19 +233,27 @@ export class ApplauseButton extends LitElement {
       'style-root': true,
       'loading': this.loading,
       'clapped': this.clapped,
-      'no-shockwave': this.noWave,
+      'no-shockwave': this.noWave || !this.ready,
     })}
       >
         <div class="shockwave"></div>
-        <div class="count-container">
-          <div class="count">${this.clicking ? '+' : ''}${formatClaps(this.totalClaps)}</div>
+        <div class=${classMap({
+      'count-container': true,
+      'container-top': this.textPlacement === TextPlacement.Top,
+      'container-bottom': this.textPlacement === TextPlacement.Bottom,
+    })}>
+          <div class="count">
+            ${this.clicking ? '+' : ''}${formatClaps(this.totalClaps)}
+            ${this.paymentRequired ? html`<a href="${WEBSITE}" style="color:indianred">Payment required</a>` : null}
+          </div>
         </div>
         ${hand}
         ${sparkle}
         ${circle}
         <button
-          @mousedown=${!this.loading ? this.clickCallback : null}
-          @touchstart=${!this.loading ? this.clickCallback : null}
+          ?disabled=${this.loading || !this.ready}
+          @mousedown=${this.loading || !this.ready ? null : this.clickCallback}
+          @touchstart=${this.loading || !this.ready ? null : this.clickCallback}
         ></button>
       </div>
       `;
