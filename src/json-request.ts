@@ -13,9 +13,9 @@ export {
 type JSONBodyInit = BodyInit | object;
 type JSONRequestInit = Omit<RequestInit, 'body'> & { body?: JSONBodyInit | null };
 
-function isBodyInit(b: JSONBodyInit) {
+function isBodyInit(b?: JSONBodyInit | null) {
   return (
-    b == null || 
+    b == null ||
     typeof b === 'string' ||
     (typeof Blob !== 'undefined' && b instanceof Blob) ||
     (typeof ArrayBuffer !== 'undefined' && (b instanceof ArrayBuffer || ArrayBuffer.isView(b))) ||
@@ -50,8 +50,8 @@ export class JSONRequest extends Request {
 export class JSONResponse extends Response {
   static contentType = 'application/json;charset=UTF-8';
   constructor(
-    body: JSONBodyInit | null, 
-    init: ResponseInit, 
+    body: JSONBodyInit | null,
+    init: ResponseInit,
     replacer?: (this: any, key: string, value: any) => any,
     space?: string | number
   ) {
@@ -72,8 +72,8 @@ export const urlWithParams = (url: string | URL, params?: { [name: string]: stri
 }
 
 export function jsonFetch(
-  input: JSONRequest | string | URL, 
-  init?: JSONRequestInit, 
+  input: JSONRequest | string | URL,
+  init?: JSONRequestInit,
   replacer?: (this: any, key: string, value: any) => any,
   space?: string | number,
 ) {

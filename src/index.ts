@@ -2,7 +2,9 @@ import { html, svg, LitElement, customElement, query, property } from "lit-eleme
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
 import { repeat } from 'lit-html/directives/repeat';
-import { UUID } from 'uuid-class/mjs';
+import { UUID } from 'uuid-class';
+
+// @ts-ignore
 import { StorageArea } from 'kv-storage-polyfill';
 
 import { styles } from './styles';
@@ -14,10 +16,10 @@ const WEBSITE = "http://localhost:4002";
 const TIMER = 2500;
 const ANIM_DELAY = 250;
 
-const storage = new StorageArea('applause-button');
+const storage = new StorageArea('clap-button');
 
 const refCount = new Map<string, number>();
-const fetchMap = new Map<string, Promise<Response>>();
+const fetchMap = new Map<string, Promise<{ [href: string]: { claps: number } }>>();
 
 interface ClapData {
   url: string;
@@ -25,13 +27,13 @@ interface ClapData {
   totalClaps: number;
 }
 
-const withoutHash = (href) => {
+const withoutHash = (href: string) => {
   const parentURL = new URL(href);
   parentURL.hash = '';
   return parentURL.href;
 };
 
-const getClaps = async (url: string) => {
+const getClaps = async (url: string): Promise<{ claps: number }> => {
   const parentHref = withoutHash(url);
 
   let indexPromise = fetchMap.get(parentHref);
@@ -40,17 +42,17 @@ const getClaps = async (url: string) => {
       const response = await jsonFetch(new ParamsURL('/views', { url: parentHref }, API), { method: 'POST' });
       if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
         return await response.json();
-      } else if (response.status === 402) {
-        throw response;
       } else if (response.status === 404) {
         return {};
-      } 
+      } else if (response.status === 402) {
+        throw response;
+      }
       fetchMap.delete(parentHref);
       throw Error();
     })());
   }
 
-  const index = await indexPromise;
+  const index: { [href: string]: { claps: number } } = await indexPromise;
   return index[url] || { claps: 0 }
 }
 
@@ -79,12 +81,12 @@ const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: numbe
   }
 };
 
-const arrayOfSize = size => [...new Array(size).keys()]
+const arrayOfSize = (size: number) => [...new Array(size).keys()]
 
-const formatClaps = claps => claps != null ? claps.toLocaleString("en") : '';
+const formatClaps = (claps: number|null) => claps != null ? claps.toLocaleString('en') : '';
 
 // toggle a CSS class to re-trigger animations
-const toggleClass = (element, ...cls) => {
+const toggleClass = (element: HTMLElement, ...cls: string[]) => {
   element.classList.remove(...cls);
 
   // Force layout reflow
@@ -93,12 +95,11 @@ const toggleClass = (element, ...cls) => {
   element.classList.add(...cls);
 };
 
-const debounce = (fn, delay) => {
-  var timer = null;
-  return function () {
-    var context = this, args = arguments;
+const debounce = (fn: (...args: any[]) => void, delay: number) => {
+  let timer: NodeJS.Timeout;
+  return function (...args: any[]) {
     clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(context, args), delay);
+    timer = setTimeout(() => fn(...args), delay);
   };
 };
 
@@ -107,22 +108,22 @@ enum TextPlacement {
   Bottom = "bottom",
 }
 
-@customElement('applause-button')
-export class ApplauseButton extends LitElement {
+@customElement('clap-button')
+export class ClapButton extends LitElement {
   static styles = styles;
 
   el: HTMLElement = this;
 
-  @query('.style-root') private styleRootEl: HTMLElement;
+  @query('.style-root') private styleRootEl!: HTMLElement;
 
   @property({ type: String, reflect: true, attribute: 'text-placement' }) textPlacement: TextPlacement = TextPlacement.Top;
   @property({ type: Boolean, reflect: true }) noWave: boolean = false;
   // @property({ type: Boolean, reflect: true }) useLocation: boolean = false;
 
-  @property({ type: String, reflect: false }) url: string;
+  @property({ type: String, reflect: false }) url!: string;
 
-  @property() private totalClaps: number;
-  @property() private loading: boolean;
+  @property() private totalClaps: number = 0;
+  @property() private loading: boolean = true;
   @property() private clapped: boolean = false;
   @property() private clicking: boolean = false;
   @property() private bufferedClaps: number = 0;
@@ -142,8 +143,15 @@ export class ApplauseButton extends LitElement {
     return window.location.href;
   }
 
+  constructor() {
+    super();
+    this.canonicalUrl = this.getCanonicalUrl();
+  }
+
   async connectedCallback() {
     super.connectedCallback();
+
+    // @ts-ignore
     this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
 
     this.canonicalUrl = this.getCanonicalUrl();
@@ -166,17 +174,19 @@ export class ApplauseButton extends LitElement {
     } catch (err) {
       this.loading = false;
       this.ready = false;
-      this.el.style.setProperty('--applause-button-color', 'indianred');
+      this.el.style.setProperty('--clap-button-color', 'indianred');
       this.paymentRequired = err.status === 402;
     }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+
+    // @ts-ignore
     this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
 
     const parentHref = withoutHash(this.canonicalUrl);
-    const cnt = refCount.get(parentHref) - 1;
+    const cnt = refCount?.get(parentHref) || 0 - 1;
     if (cnt > 0) {
       refCount.set(parentHref, cnt);
     } else {
@@ -243,7 +253,7 @@ export class ApplauseButton extends LitElement {
       'container-bottom': this.textPlacement === TextPlacement.Bottom,
     })}>
           <div class="count">
-            ${this.clicking ? '+' : ''}${formatClaps(this.totalClaps)}
+            ${this.clicking ? '+' : ''}${this.ready ? formatClaps(this.totalClaps) : ''}
             ${this.paymentRequired ? html`<a href="${WEBSITE}" style="color:indianred">Payment required</a>` : null}
           </div>
         </div>
