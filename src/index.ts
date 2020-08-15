@@ -139,15 +139,11 @@ export class ClapButton extends LitElement {
   private _canonicalUrl?: string;
   private get canonicalUrl() {
     if (!this._canonicalUrl) {
-      // const linkEl = this.useLocation ? null : document.head.querySelector('link[rel=canonical]') as HTMLLinkElement | null;
-
       if (this.url) {
-        this._canonicalUrl = new URL(this.url, /* linkEl?.href ?? */ this.ownerDocument.location.origin).href;
+        this._canonicalUrl = new URL(this.url, this.ownerDocument.location.origin).href;
+      } else {
+        this._canonicalUrl = this.ownerDocument.location.href;
       }
-
-      // if (linkEl) return linkEl.href;
-
-      this._canonicalUrl = this.ownerDocument.location.href;
     }
     return this._canonicalUrl
   }
