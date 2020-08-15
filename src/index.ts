@@ -130,22 +130,24 @@ export class ClapButton extends LitElement {
   @property() private ready: boolean = false;
   @property() private paymentRequired: boolean = false;
 
-  private canonicalUrl: string;
-  private getCanonicalUrl() {
-    // const linkEl = this.useLocation ? null : document.head.querySelector('link[rel=canonical]') as HTMLLinkElement | null;
+  private _canonicalUrl?: string;
+  private get canonicalUrl() {
+    if (!this._canonicalUrl) {
+      // const linkEl = this.useLocation ? null : document.head.querySelector('link[rel=canonical]') as HTMLLinkElement | null;
 
-    if (this.url) {
-      return new URL(this.url, /* linkEl?.href ?? */ window.location.origin).href;
+      if (this.url) {
+        this._canonicalUrl = new URL(this.url, /* linkEl?.href ?? */ this.ownerDocument.location.origin).href;
+      }
+
+      // if (linkEl) return linkEl.href;
+
+      this._canonicalUrl = this.ownerDocument.location.href;
     }
-
-    // if (linkEl) return linkEl.href;
-
-    return window.location.href;
+    return this._canonicalUrl
   }
 
   constructor() {
     super();
-    this.canonicalUrl = this.getCanonicalUrl();
   }
 
   async connectedCallback() {
@@ -154,7 +156,6 @@ export class ClapButton extends LitElement {
     // @ts-ignore
     this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
 
-    this.canonicalUrl = this.getCanonicalUrl();
     refCount.set(this.canonicalUrl, 1 + (refCount.get(this.canonicalUrl) || 0));
 
     // const themeColorEl = document.head.querySelector('meta[name=theme-color]') as HTMLMetaElement | null;
