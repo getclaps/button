@@ -12,7 +12,7 @@ url:                   https://hydecorp.github.io
 # Use the empty string '' otherwise.
 # For GitHub project sites, this is usually the name of the project,
 # e.g. `/hydejack`.
-baseurl:               '/applause-button'
+baseurl:               '/clap-button'
 
 
 # General settings
@@ -23,16 +23,16 @@ baseurl:               '/applause-button'
 lang:                  en
 
 # The title of your blog. Used in the sidebar and the browser tab.
-title:                 Applause Button
+title:                 Clap Button
 
 # A short description (~150 chars) of the page used for the meta description tag.
 # Can use markdown, but no more than one paragraph (enforced by `>`)
 description:           >
-  A zero-config clap button that combines analytics   
-  with Cookie Clicker levels of engagement.
+  A zero-config Clap Button that combines Analytics
+  with Cookie Clicker-like Engagement.
 
 # A shorter description for the sidebar.
-tagline:               A zero-config clap button
+tagline:               A zero-config Clap Button
 
 # A list of keywords for your blog
 # keywords:

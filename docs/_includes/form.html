@@ -1,0 +1,11 @@
+<form method="POST" action="{{ page.worker_domain }}/stripe/forward" class="centered mt2 mb4">
+  <input type="hidden" name="mode" value="subscription"/>
+  <input type="hidden" name="payment_method_types[0]" value="card"/>
+  <input type="hidden" name="line_items[0][quantity]" value="1"/>
+  <input type="hidden" name="line_items[0][price]" value="{{ page.price_id }}"/>
+  <input type="hidden" name="success_url" value="{{ page.worker_domain }}/dashboard/new?session_id={CHECKOUT_SESSION_ID}"/>
+  <input type="hidden" name="cancel_url" value="{{ site.url }}{{ site.baseurl }}/"/>
+  <button type="submit" class="btn btn-primary {{ include.btn_size }}">Subscribe</button>
+  <!-- <button type="submit" class="btn btn-default {{ include.btn_size }}" style="background:none" formaction="{{ page.worker_domain_dev }}/stripe/forward">Demo</button> -->
+  {% unless include.btn_size == 'btn-lg' %}<a class="btn btn-default" href="#pricing" style="font-weight:normal">See Pricing</a>{% endunless %}
+</form>
