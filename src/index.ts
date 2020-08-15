@@ -11,6 +11,23 @@ import { styles } from './styles';
 import { ParamsURL, jsonFetch } from './json-request';
 import { proofOfClap } from './util.js';
 
+enum TextPlacement {
+  Top = "top",
+  Bottom = "bottom",
+}
+
+enum ErrorTypes {
+  PaymentRequired,
+  HTTPSRequired,
+  CryptoRequired,
+}
+
+interface ClapData {
+  url: string;
+  claps: number;
+  totalClaps: number;
+}
+
 const API = "http://localhost:8787";
 const WEBSITE = "http://localhost:4002";
 const TIMER = 2500;
@@ -20,12 +37,6 @@ const storage = new StorageArea('clap-button');
 
 const refCount = new Map<string, number>();
 const fetchMap = new Map<string, Promise<{ [href: string]: { claps: number } }>>();
-
-interface ClapData {
-  url: string;
-  claps: number;
-  totalClaps: number;
-}
 
 const withoutHash = (href: string) => {
   const parentURL = new URL(href);
@@ -57,7 +68,7 @@ const getClaps = async (url: string): Promise<{ claps: number }> => {
 }
 
 const mine = async (claps: number, url: string) => {
-  const urlClass = new URL(url, window.location.origin);
+  const urlClass = new URL(url);
   urlClass.search = '';
   const { href } = urlClass;
 
@@ -83,7 +94,7 @@ const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: numbe
 
 const arrayOfSize = (size: number) => [...new Array(size).keys()]
 
-const formatClaps = (claps: number|null) => claps != null ? claps.toLocaleString('en') : '';
+const formatClaps = (claps: number | null) => claps != null ? claps.toLocaleString('en') : '';
 
 // toggle a CSS class to re-trigger animations
 const toggleClass = (element: HTMLElement, ...cls: string[]) => {
@@ -103,11 +114,6 @@ const debounce = (fn: (...args: any[]) => void, delay: number) => {
   };
 };
 
-enum TextPlacement {
-  Top = "top",
-  Bottom = "bottom",
-}
-
 @customElement('clap-button')
 export class ClapButton extends LitElement {
   static styles = styles;
@@ -123,12 +129,12 @@ export class ClapButton extends LitElement {
   @property({ type: String, reflect: false }) url!: string;
 
   @property() private totalClaps: number = 0;
-  @property() private loading: boolean = true;
+  @property() private loading: boolean = false;
   @property() private clapped: boolean = false;
   @property() private clicking: boolean = false;
   @property() private bufferedClaps: number = 0;
   @property() private ready: boolean = false;
-  @property() private paymentRequired: boolean = false;
+  @property() private error: ErrorTypes | null = null;
 
   private _canonicalUrl?: string;
   private get canonicalUrl() {
@@ -153,10 +159,20 @@ export class ClapButton extends LitElement {
   async connectedCallback() {
     super.connectedCallback();
 
+    refCount.set(this.canonicalUrl, 1 + (refCount.get(this.canonicalUrl) || 0));
+
+    if (this.ownerDocument.location.hostname !== 'localhost' && this.ownerDocument.location.protocol !== 'https:') {
+      this.error = ErrorTypes.HTTPSRequired;
+      return;
+    }
+
+    if ('crypto' in window && 'subtle' in window.crypto && 'digest' in window.crypto.subtle) { /* ok */ } else {
+      this.error = ErrorTypes.CryptoRequired;
+      return;
+    }
+
     // @ts-ignore
     this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
-
-    refCount.set(this.canonicalUrl, 1 + (refCount.get(this.canonicalUrl) || 0));
 
     // const themeColorEl = document.head.querySelector('meta[name=theme-color]') as HTMLMetaElement | null;
     // if (themeColorEl) {
@@ -164,7 +180,6 @@ export class ClapButton extends LitElement {
     // }
 
     this.loading = true;
-
     this.clapped = await storage.get(this.canonicalUrl) != null;
 
     try {
@@ -175,8 +190,7 @@ export class ClapButton extends LitElement {
     } catch (err) {
       this.loading = false;
       this.ready = false;
-      this.el.style.setProperty('--clap-button-color', 'indianred');
-      this.paymentRequired = err.status === 402;
+      this.error = err.status === 402 ? ErrorTypes.PaymentRequired : null;
     }
   }
 
@@ -246,6 +260,9 @@ export class ClapButton extends LitElement {
       'clapped': this.clapped,
       'no-shockwave': this.noWave || !this.ready,
     })}
+        style=${styleMap({
+      ...this.error ? { '--clap-button-color': 'indianred' } : {}
+    })}
       >
         <div class="shockwave"></div>
         <div class=${classMap({
@@ -255,7 +272,9 @@ export class ClapButton extends LitElement {
     })}>
           <div class="count">
             ${this.clicking ? '+' : ''}${this.ready ? formatClaps(this.totalClaps) : ''}
-            ${this.paymentRequired ? html`<a href="${WEBSITE}" style="color:indianred">Payment required</a>` : null}
+            ${this.error === ErrorTypes.PaymentRequired ? html`<a class="error" href="${WEBSITE}">Payment required</a>` : null}
+            ${this.error === ErrorTypes.HTTPSRequired ? html`<span class="error">HTTPS required</span>` : null}
+            ${this.error === ErrorTypes.CryptoRequired ? html`<span class="error">Crypto required</span>` : null}
           </div>
         </div>
         ${hand}
