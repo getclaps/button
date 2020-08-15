@@ -6,11 +6,9 @@
   "main": "dist/index.js",
   "module": "lib/index.js",
   "files": [
-    "lib"
+    "lib",
+    "dist"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "clean": "rm -rf lib dist",
     "test": "exit 0",
