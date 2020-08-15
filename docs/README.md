@@ -1,8 +1,5 @@
 ---
 layout: welcome
-selected_posts:
-  - _posts/2020-06-01-improve-seo-ranking.md
-  - _posts/2020-06-02-gdpr-compliant-analytics.md
 worker_domain: http://localhost:8787
 worker_domain_dev: http://localhost:8787
 price_id: price_1HF9nBAKMWLvHNfJlxejlWKp
@@ -155,6 +152,7 @@ Zero-Config doesn't mean no config is possible: Make it your own with the follow
 [^1]: [Cookie Clicker](http://orteil.dashnet.org/cookieclicker/) is a popular online game that pioneered the "clicker" genre, where the main mechanic is clicking a single button. Much like clap buttons, it's using the fact that clicking something repeatedly is oddly satisfying.
 
 [^2]: Note that claps will be deleted after 24 hours when they are hosted on localhost.
+
 
 <style>
 /* .page > header > h1, */
