@@ -1,9 +1,9 @@
 {
-  "name": "@hydecorp/applause-button",
-  "version": "1.0.0-alpha.0",
+  "name": "clap-button",
+  "version": "1.0.0-alpha",
   "description": "",
   "type": "module",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "module": "lib/index.js",
   "files": [
     "lib"
@@ -12,7 +12,7 @@
     "access": "public"
   },
   "scripts": {
-    "clean": "rm -rf lib",
+    "clean": "rm -rf lib dist",
     "test": "exit 0",
     "build:tsc": "tsc -d --outDir lib",
     "watch:tsc": "tsc -d --outDir lib -w",
@@ -29,27 +29,27 @@
   "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
   "license": "GPL-3.0",
   "devDependencies": {
-    "rollup": "^2.18.1",
+    "rollup": "^2.25.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^7.0.0",
     "rollup-plugin-typescript": "^1.0.1",
-    "tslib": "^2.0.0",
+    "tslib": "^2.0.1",
     "typescript": "^3.9.5"
   },
   "dependencies": {
-    "base64-encoding": "^0.2.0",
     "kv-storage-polyfill": "^2.0.0",
     "lit-element": "^2.3.1",
     "lit-html": "^1.2.1",
-    "uuid-class": "^0.2.0"
+    "uuid-class": "^0.9.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hydecorp/applause-button.git"
+    "url": "git+https://github.com/hydecorp/clap-button.git"
   },
   "bugs": {
-    "url": "https://github.com/hydecorp/applause-button/issues"
+    "url": "https://github.com/hydecorp/clap-button/issues"
   },
-  "homepage": "https://hydecorp.github.io/applause-button/",
+  "homepage": "https://hydecorp.github.io/clap-button/",
   "tags": []
 }
