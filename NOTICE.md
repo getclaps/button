@@ -1,3 +1,7 @@
+This software includes material copied from or derived from 
+`ColinEberhardt/applause-button`
+which is MIT licensed with the following copyright:
+
 > Copyright (c) 2019 Colin Eberhardt
 > 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
