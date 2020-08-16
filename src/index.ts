@@ -28,8 +28,8 @@ interface ClapData {
   totalClaps: number;
 }
 
-const API = "http://localhost:8787";
-const WEBSITE = "http://localhost:4002";
+const API = "https://worker.getclaps.dev";
+const WEBSITE = "https://getclaps.dev";
 const TIMER = 2500;
 const ANIM_DELAY = 250;
 
