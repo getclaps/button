@@ -148,10 +148,6 @@ export class ClapButton extends LitElement {
     return this._canonicalUrl
   }
 
-  constructor() {
-    super();
-  }
-
   async connectedCallback() {
     super.connectedCallback();
 
