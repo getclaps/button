@@ -1,5 +1,5 @@
 {
-  "name": "@hydecorp/clap-button",
+  "name": "@getclaps/button",
   "version": "1.0.0-alpha.1",
   "description": "",
   "type": "module",
@@ -43,11 +43,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hydecorp/clap-button.git"
+    "url": "git+https://github.com/getclaps/button.git"
   },
   "bugs": {
-    "url": "https://github.com/hydecorp/clap-button/issues"
+    "url": "https://github.com/getclaps/button/issues"
   },
-  "homepage": "https://hydecorp.github.io/clap-button/",
+  "homepage": "https://getclaps.net/",
   "tags": []
 }
