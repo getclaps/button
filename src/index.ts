@@ -44,13 +44,13 @@ const withoutHash = (href: string) => {
   return parentURL.href;
 };
 
-const getClaps = async (url: string): Promise<{ claps: number }> => {
+const getClaps = async (url: string, referrer: string): Promise<{ claps: number }> => {
   const parentHref = withoutHash(url);
 
   let indexPromise = fetchMap.get(parentHref);
   if (!indexPromise) {
     fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
-      const response = await jsonFetch(new ParamsURL('/views', { url: parentHref }, API), { method: 'POST' });
+      const response = await jsonFetch(new ParamsURL('/views', { url: parentHref, ...referrer ? { referrer } : {} }, API), { method: 'POST' });
       if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
         return await response.json();
       } else if (response.status === 404) {
@@ -175,7 +175,7 @@ export class ClapButton extends LitElement {
     this.clapped = await storage.get(this.canonicalUrl) != null;
 
     try {
-      const { claps } = await getClaps(this.canonicalUrl);
+      const { claps } = await getClaps(this.canonicalUrl, this.ownerDocument.referrer);
       this.loading = false;
       this.ready = true;
       this.totalClaps = claps;
