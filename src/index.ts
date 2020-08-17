@@ -28,7 +28,7 @@ interface ClapData {
   totalClaps: number;
 }
 
-const API = "https://worker.getclaps.dev";
+const API = Reflect.get(window, 'GET_CLAPS_API') || "https://worker.getclaps.dev";
 const WEBSITE = "https://getclaps.dev";
 const TIMER = 2500;
 const ANIM_DELAY = 250;
