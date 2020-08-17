@@ -38,14 +38,15 @@ const storage = new StorageArea('clap-button');
 const refCount = new Map<string, number>();
 const fetchMap = new Map<string, Promise<{ [href: string]: { claps: number } }>>();
 
-const withoutHash = (href: string) => {
+const getParentHref = (href: string) => {
   const parentURL = new URL(href);
   parentURL.hash = '';
+  parentURL.searchParams.delete('referrer');
   return parentURL.href;
 };
 
 const getClaps = async (url: string, referrer: string): Promise<{ claps: number }> => {
-  const parentHref = withoutHash(url);
+  const parentHref = getParentHref(url);
 
   let indexPromise = fetchMap.get(parentHref);
   if (!indexPromise) {
@@ -85,7 +86,7 @@ const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: numbe
   });
   const response = await responseP;
   if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
-    fetchMap.delete(withoutHash(url));
+    fetchMap.delete(getParentHref(url));
     return response.clone().json();
   } else {
     throw Error();
@@ -148,6 +149,10 @@ export class ClapButton extends LitElement {
     return this._canonicalUrl
   }
 
+  private get referrer() {
+    return new URLSearchParams(this.ownerDocument.location.search).get('referrer') || this.ownerDocument.referrer;
+  }
+
   async connectedCallback() {
     super.connectedCallback();
 
@@ -175,7 +180,7 @@ export class ClapButton extends LitElement {
     this.clapped = await storage.get(this.canonicalUrl) != null;
 
     try {
-      const { claps } = await getClaps(this.canonicalUrl, this.ownerDocument.referrer);
+      const { claps } = await getClaps(this.canonicalUrl, this.referrer);
       this.loading = false;
       this.ready = true;
       this.totalClaps = claps;
@@ -192,8 +197,8 @@ export class ClapButton extends LitElement {
     // @ts-ignore
     this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
 
-    const parentHref = withoutHash(this.canonicalUrl);
-    const cnt = refCount?.get(parentHref) || 0 - 1;
+    const parentHref = getParentHref(this.canonicalUrl);
+    const cnt = (refCount?.get(parentHref) || 0) - 1;
     if (cnt > 0) {
       refCount.set(parentHref, cnt);
     } else {
@@ -203,7 +208,7 @@ export class ClapButton extends LitElement {
   }
 
   private clappedCallback = ({ target, detail: { url, claps } }: CustomEvent<ClapData>) => {
-    if (target !== this && url === this.canonicalUrl || withoutHash(url) === this.canonicalUrl) {
+    if (target !== this && url === this.canonicalUrl || getParentHref(url) === this.canonicalUrl) {
       this.clapped = true;
       this.totalClaps += claps;
       toggleClass(this.styleRootEl, "clap");
