@@ -41,7 +41,7 @@ const fetchMap = new Map<string, Promise<{ [href: string]: { claps: number } }>>
 const getParentHref = (href: string) => {
   const parentURL = new URL(href);
   parentURL.hash = '';
-  parentURL.searchParams.delete('referrer');
+  parentURL.search = '';
   return parentURL.href;
 };
 
