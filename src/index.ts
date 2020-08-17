@@ -156,7 +156,9 @@ export class ClapButton extends LitElement {
   async connectedCallback() {
     super.connectedCallback();
 
-    refCount.set(this.canonicalUrl, 1 + (refCount.get(this.canonicalUrl) || 0));
+
+    const parentHref = getParentHref(this.canonicalUrl);
+    refCount.set(parentHref, 1 + (refCount.get(parentHref) || 0));
 
     if (this.ownerDocument.location.hostname !== 'localhost' && this.ownerDocument.location.protocol !== 'https:') {
       this.error = ErrorTypes.HTTPSRequired;
