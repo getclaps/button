@@ -51,7 +51,15 @@ const getClaps = async (url: string, referrer: string): Promise<{ claps: number 
   let indexPromise = fetchMap.get(parentHref);
   if (!indexPromise) {
     fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
-      const response = await jsonFetch(new ParamsURL('/views', { url: parentHref, ...referrer ? { referrer } : {} }, API), { method: 'POST' });
+      const response = await jsonFetch(new ParamsURL('/views', { 
+        url: parentHref, 
+        ...referrer ? { referrer } : {} 
+      }, API), { 
+        method: 'POST',
+        body: null,
+        mode: 'cors',
+        credentials: 'include',
+      });
       if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
         return await response.json();
       } else if (response.status === 404) {
@@ -83,6 +91,8 @@ const updateClapsApi = async (claps: number, url: string, id: UUID, nonce: numbe
   const responseP = jsonFetch(new ParamsURL('/claps', { url }, API), {
     method: 'POST',
     body: { claps, id, nonce },
+    mode: 'cors',
+    credentials: 'include',
   });
   const response = await responseP;
   if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
