@@ -160,7 +160,8 @@ export class ClapButton extends LitElement {
   }
 
   private get referrer() {
-    return new URLSearchParams(this.ownerDocument.location.search).get('referrer') || this.ownerDocument.referrer;
+    const usp = new URLSearchParams(this.ownerDocument.location.search);
+    return usp.get('referrer') || usp.get('referer') || this.ownerDocument.referrer;
   }
 
   async connectedCallback() {
