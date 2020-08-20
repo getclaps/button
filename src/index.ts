@@ -17,9 +17,10 @@ enum TextPlacement {
 }
 
 enum ErrorTypes {
-  PaymentRequired,
+  PaymentRequired = 1,
   HTTPSRequired,
   CryptoRequired,
+  Generic,
 }
 
 interface ClapData {
@@ -203,7 +204,7 @@ export class ClapButton extends LitElement {
     } catch (err) {
       this.loading = false;
       this.ready = false;
-      this.error = err.status === 402 ? ErrorTypes.PaymentRequired : null;
+      this.error = err.status === 402 ? ErrorTypes.PaymentRequired : ErrorTypes.Generic;
     }
   }
 
@@ -273,7 +274,7 @@ export class ClapButton extends LitElement {
       'no-shockwave': this.noWave || !this.ready,
     })}
         style=${styleMap({
-      ...this.error ? { '--clap-button-color': 'indianred' } : {}
+      ...this.error != null ? { '--clap-button-color': 'indianred' } : {}
     })}
       >
         <div class="shockwave"></div>
@@ -287,6 +288,7 @@ export class ClapButton extends LitElement {
             ${this.error === ErrorTypes.PaymentRequired ? html`<a class="error" href="${WEBSITE}">Payment required</a>` : null}
             ${this.error === ErrorTypes.HTTPSRequired ? html`<span class="error">HTTPS required</span>` : null}
             ${this.error === ErrorTypes.CryptoRequired ? html`<span class="error">Crypto required</span>` : null}
+            ${this.error === ErrorTypes.Generic ? html`<span class="error">Error</span>` : null}
           </div>
         </div>
         ${hand}
@@ -318,11 +320,12 @@ export class ClapButton extends LitElement {
       detail: { claps, totalClaps, href: href },
     }));
 
+    // MAYBE: Replace with animation finish event!?
     setTimeout(() => { this.totalClaps = totalClaps }, ANIM_DELAY);
 
     const data = await storage.get(href) || { claps: 0 };
     await storage.set(href, { ...data, claps: data.claps + claps });
-  }, TIMER); // MAYBE: Replace with animation finish event!?
+  }, TIMER);
 
   private clickCallback = (event: MouseEvent) => {
     if (event.button !== 0) {
