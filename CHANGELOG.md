@@ -1,4 +1,8 @@
-# CHANGELOG 
+# CHANGELOG
+
+## v1.0.0-alpha.5
+- Update deps
+- Add changelog 
 
 ## 1.0.0-alpha.4
 - Include credentials
