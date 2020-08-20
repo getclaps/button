@@ -22,6 +22,10 @@
     "build": "npm run build:tsc & npm run build:rollup & wait",
     "watch": "npm run watch:tsc & npm run watch:rollup",
     "dev": "npm run watch & http-server -p 3337",
+    "changelog:head": "echo \"\\n\\n## v$npm_package_version\" | bin/after.js 'CHANGELOG' CHANGELOG.md",
+    "changelog:list": "git log v$npm_package_version..HEAD --pretty=format:'- %s' --reverse | bin/after.js 'CHANGELOG' CHANGELOG.md",
+    "preversion": "npm run changelog:list",
+    "version": "npm run changelog:head && git add .",
     "prepack": "npm run clean && npm run build"
   },
   "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",

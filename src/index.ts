@@ -37,6 +37,7 @@ const storage = new StorageArea('clap-button');
 
 const refCount = new Map<string, number>();
 const fetchMap = new Map<string, Promise<{ [href: string]: { claps: number } }>>();
+let referrerSent = false;
 
 const getParentHref = (href: string) => {
   const parentURL = new URL(href);
@@ -53,13 +54,14 @@ const getClaps = async (url: string, referrer: string): Promise<{ claps: number 
     fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
       const response = await jsonFetch(new ParamsURL('/views', { 
         url: parentHref, 
-        ...referrer ? { referrer } : {} 
+        ...referrer && !referrerSent ? { referrer } : {} 
       }, API), { 
         method: 'POST',
         body: null,
         mode: 'cors',
         credentials: 'include',
       });
+      referrerSent = true;
       if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
         return await response.json();
       } else if (response.status === 404) {
