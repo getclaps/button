@@ -2,14 +2,13 @@ import { html, svg, LitElement, customElement, query, property } from "lit-eleme
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
 import { repeat } from 'lit-html/directives/repeat';
-import { UUID } from 'uuid-class';
-
 // @ts-ignore
 import { StorageArea } from 'kv-storage-polyfill';
 
 import { styles } from './styles';
-import { ParamsURL, jsonFetch } from './json-request';
-import { proofOfClap } from './util.js';
+
+import { getClaps, updateClapsApi, mine, cleanUp } from './api';
+import { ConnectedCountElement } from "./connected-count";
 
 enum TextPlacement {
   Top = "top",
@@ -29,72 +28,11 @@ interface ClapData {
   totalClaps: number;
 }
 
-const API = Reflect.get(window, 'GET_CLAPS_API') || "https://worker.getclaps.dev";
 const WEBSITE = "https://getclaps.dev";
 const TIMER = 2500;
 const ANIM_DELAY = 250;
 
 const storage = new StorageArea('clap-button');
-
-const refCount = new Map<string, number>();
-const fetchMap = new Map<string, Promise<{ [href: string]: { claps: number } }>>();
-let referrerSent = false;
-
-const getClaps = async (href: string, parentHref: string, referrer: string): Promise<{ claps: number }> => {
-  let indexPromise = fetchMap.get(parentHref);
-  if (!indexPromise) {
-    fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
-      const response = await jsonFetch(new ParamsURL('/views', { 
-        href: parentHref, 
-        ...referrer && !referrerSent ? { referrer } : {} 
-      }, API), { 
-        method: 'POST',
-        body: null,
-        mode: 'cors',
-        credentials: 'include',
-      });
-      referrerSent = true;
-      if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
-        return await response.json();
-      } else if (response.status === 404) {
-        return {};
-      } else if (response.status === 402) {
-        throw response;
-      }
-      fetchMap.delete(parentHref);
-      throw Error();
-    })());
-  }
-
-  const index: { [href: string]: { claps: number } } = await indexPromise;
-  return index[href] || { claps: 0 }
-}
-
-const mine = async (claps: number, href: string) => {
-  const url = new URL(href);
-  url.search = '';
-
-  const id = new UUID();
-  const nonce = await proofOfClap({ url, claps, id });
-
-  return { href: url.href, id, nonce };
-}
-
-const updateClapsApi = async (claps: number, href: string, parentHref: string, id: UUID, nonce: number): Promise<{ claps: number }> => {
-  const responseP = jsonFetch(new ParamsURL('/claps', { href }, API), {
-    method: 'POST',
-    body: { claps, id, nonce },
-    mode: 'cors',
-    credentials: 'include',
-  });
-  const response = await responseP;
-  if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
-    fetchMap.delete(parentHref);
-    return response.clone().json();
-  } else {
-    throw Error();
-  }
-};
 
 const arrayOfSize = (size: number) => [...new Array(size).keys()]
 
@@ -118,8 +56,15 @@ const debounce = (fn: (...args: any[]) => void, delay: number) => {
   };
 };
 
+const getParentHref = (href: string) => {
+  const parentURL = new URL(href);
+  parentURL.hash = '';
+  parentURL.search = '';
+  return parentURL.href;
+}
+
 @customElement('clap-button')
-export class ClapButton extends LitElement {
+export class ClapButton extends ConnectedCountElement {
   static styles = styles;
 
   el: HTMLElement = this;
@@ -157,10 +102,7 @@ export class ClapButton extends LitElement {
   private _parentHref?: string;
   private get parentHref() {
     return this._parentHref || (() => {
-      const parentURL = new URL(this.canonical);
-      parentURL.hash = '';
-      parentURL.search = '';
-      return this._parentHref = parentURL.href;
+      return this._parentHref = getParentHref(this.canonical);
     })();
   }
 
@@ -171,8 +113,6 @@ export class ClapButton extends LitElement {
 
   async connectedCallback() {
     super.connectedCallback();
-
-    refCount.set(this.parentHref, 1 + (refCount.get(this.parentHref) || 0));
 
     const { location } = this.ownerDocument;
     if (location.hostname !== 'localhost' && location.protocol !== 'https:') {
@@ -213,18 +153,16 @@ export class ClapButton extends LitElement {
 
     // @ts-ignore
     this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
+  }
 
-    const cnt = (refCount?.get(this.parentHref) || 0) - 1;
-    if (cnt > 0) {
-      refCount.set(this.parentHref, cnt);
-    } else {
-      refCount.delete(this.parentHref);
-      fetchMap.delete(this.parentHref);
-    }
+  // Ref-counts all elements with the same `parentHref` and invokes `allDisconnectedCallback` when the count reaches 0.
+  get connectedCountKey() { return this.parentHref }
+  allDisconnectedCallback() {
+    cleanUp(this.parentHref);
   }
 
   private clappedCallback = ({ target, detail: { href, claps } }: CustomEvent<ClapData>) => {
-    if (target !== this && href === this.canonical || this.parentHref === this.canonical) {
+    if (target !== this && [href, getParentHref(href)].includes(this.canonical)) {
       this.clapped = true;
       this.totalClaps += claps;
       toggleClass(this.styleRootEl, "clap");

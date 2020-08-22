@@ -67,6 +67,7 @@ export class JSONResponse extends Response {
   }
 }
 
+/** @deprecated Use {@link SearchParamsURL} instead */
 export const urlWithParams = (url: string | URL, params?: { [name: string]: string }, base?: string | URL) => {
   return new SearchParamsURL(url, params, base).href;
 }
