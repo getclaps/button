@@ -2,6 +2,7 @@ import { html, svg, LitElement, customElement, query, property } from "lit-eleme
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
 import { repeat } from 'lit-html/directives/repeat';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 // @ts-ignore
 import { StorageArea } from 'kv-storage-polyfill';
 
@@ -63,6 +64,14 @@ const getParentHref = (href: string) => {
   return parentURL.href;
 }
 
+@customElement('clap-config')
+export class ClapConfig extends LitElement { }
+
+@customElement('clap-text')
+export class ClapText extends LitElement {
+  @property({ type: Number, reflect: true }) at: number = 1;
+}
+
 @customElement('clap-button')
 export class ClapButton extends ConnectedCountElement {
   static styles = styles;
@@ -90,7 +99,7 @@ export class ClapButton extends ConnectedCountElement {
     return this._canonical || (() => {
       const href = this.href || this.url;
       const metaEl = this.ownerDocument.head.querySelector('link[rel=canonical]') as HTMLLinkElement;
-      const location = metaEl != null 
+      const location = metaEl != null
         ? new URL(metaEl.href)
         : this.ownerDocument.location
       return this._canonical = href
@@ -110,6 +119,8 @@ export class ClapButton extends ConnectedCountElement {
     const usp = new URLSearchParams(this.ownerDocument.location.search);
     return usp.get('referrer') || usp.get('referer') || this.ownerDocument.referrer;
   }
+
+  private msgs!: Map<number, string>;
 
   async connectedCallback() {
     super.connectedCallback();
@@ -132,6 +143,12 @@ export class ClapButton extends ConnectedCountElement {
     // if (themeColorEl) {
     //   this.el.style.setProperty('--theme-color', themeColorEl.content);
     // }
+
+    this.msgs = new Map(
+      Array.from(this.ownerDocument.querySelector('clap-config')?.querySelectorAll('clap-text') ?? [])
+        ?.map((x => [(x as ClapText).at, (x as ClapText).innerHTML] as [number, string]))
+        ?.sort(([a], [b]) => b - a)
+    );
 
     this.loading = true;
     this.clapped = await storage.get(this.canonical) != null;
@@ -227,6 +244,15 @@ export class ClapButton extends ConnectedCountElement {
             ${this.error === ErrorTypes.HTTPSRequired ? html`<span class="error">HTTPS required</span>` : null}
             ${this.error === ErrorTypes.CryptoRequired ? html`<span class="error">Crypto required</span>` : null}
             ${this.error === ErrorTypes.Generic ? html`<span class="error">Error</span>` : null}
+          </div>
+        </div>
+        <div class=${classMap({
+      'count-container': true,
+      'container-top': this.textPlacement === TextPlacement.Bottom,
+      'container-bottom': this.textPlacement === TextPlacement.Top,
+    })}>
+          <div style="font-size:smaller">
+            ${this.clicking ? unsafeHTML([...this.msgs].find(([x]) => this.totalClaps >= x)?.[1] ?? '') : ''}
           </div>
         </div>
         ${hand}

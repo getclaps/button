@@ -71,9 +71,9 @@ export const styles = css`
     top: -2.5em; }
   .style-root .count-container.container-bottom {
     bottom: -2.5em; }
-    .style-root .count-container .count {
-      width: 200%;
-      margin-left: -50%;
+    .style-root .count-container > div {
+      width: 300%;
+      margin-left: -100%;
       text-align: center; }
   .style-root g.sparkle circle {
     opacity: 0;
