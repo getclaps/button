@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1.0.0-alpha.6
+- Rename url to href
+- Update
+- Fix error
+- Refactor API and ref counting
+- Add support for messages
+- Rename things
+
 ## v1.0.0-alpha.5
 - Update deps
 - Add changelog 
