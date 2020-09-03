@@ -93,11 +93,11 @@ export const styles = css`
       animation-duration: 0.5s;
       animation-iteration-count: 1; }
     .style-root.clap .container-top .count {
-      animation-name: hideThenShow;
+      animation-name: hide-then-show;
       animation-duration: 0.5s;
       animation-iteration-count: 1; }
     .style-root.clap .container-bottom .count {
-      animation-name: hideThenShowBottom;
+      animation-name: hide-then-show-inverse;
       animation-duration: 0.5s;
       animation-iteration-count: 1; }
 
@@ -194,7 +194,7 @@ export const styles = css`
   100% {
     transform: scale(1); } }
 
-@keyframes hideThenShow {
+@keyframes hide-then-show {
   0% {
     opacity: 1;
     transform: translateY(0); }
@@ -210,7 +210,7 @@ export const styles = css`
     opacity: 1;
     transform: translateY(0); } }
 
-@keyframes hideThenShowBottom {
+@keyframes hide-then-show-inverse {
   0% {
     opacity: 1;
     transform: translateY(0); }
