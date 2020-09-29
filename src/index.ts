@@ -93,6 +93,7 @@ export class ClapButton extends ConnectedCountElement {
   @property() private bufferedClaps: number = 0;
   @property() private ready: boolean = false;
   @property() private error: ErrorTypes | null = null;
+  @property() private noAnimation: boolean = false;
 
   private _canonical?: string;
   private get canonical() {
@@ -114,6 +115,8 @@ export class ClapButton extends ConnectedCountElement {
       return this._parentHref = getParentHref(this.canonical);
     })();
   }
+
+  private intersectionObserver!: IntersectionObserver;
 
   private get referrer() {
     const usp = new URLSearchParams(this.ownerDocument.location.search);
@@ -138,6 +141,11 @@ export class ClapButton extends ConnectedCountElement {
 
     // @ts-ignore
     this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
+
+    this.intersectionObserver = new IntersectionObserver(entries => {
+      entries.forEach(x => (x.target as ClapButton).noAnimation = !x.isIntersecting);
+    });
+    this.intersectionObserver.observe(this);
 
     // const themeColorEl = document.head.querySelector('meta[name=theme-color]') as HTMLMetaElement | null;
     // if (themeColorEl) {
@@ -167,6 +175,8 @@ export class ClapButton extends ConnectedCountElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+
+    this.intersectionObserver.unobserve(this);
 
     // @ts-ignore
     this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
@@ -227,6 +237,7 @@ export class ClapButton extends ConnectedCountElement {
       'loading': this.loading,
       'clapped': this.clapped,
       'no-shockwave': this.noWave || !this.ready,
+      'no-animation': this.noAnimation,
     })}
         style=${styleMap({
       ...this.error != null ? { '--clap-button-color': 'indianred' } : {}

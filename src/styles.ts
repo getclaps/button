@@ -78,7 +78,7 @@ export const styles = css`
   .style-root g.sparkle circle {
     opacity: 0;
     stroke-width: 0; }
-  .style-root:not(.clapped):not(.no-shockwave) .shockwave {
+  .style-root:not(.clapped):not(.no-shockwave):not(.no-animation) .shockwave {
     animation-name: shockwave;
     animation-duration: 1.5s;
     animation-iteration-count: infinite;
