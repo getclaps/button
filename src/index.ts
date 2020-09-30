@@ -116,7 +116,9 @@ export class ClapButton extends ConnectedCountElement {
     })();
   }
 
-  private intersectionObserver!: IntersectionObserver;
+  private static intersectionObserver = new IntersectionObserver(entries => {
+    entries.forEach(x => (x.target as ClapButton).noAnimation = !x.isIntersecting);
+  });
 
   private get referrer() {
     const usp = new URLSearchParams(this.ownerDocument.location.search);
@@ -142,10 +144,7 @@ export class ClapButton extends ConnectedCountElement {
     // @ts-ignore
     this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
 
-    this.intersectionObserver = new IntersectionObserver(entries => {
-      entries.forEach(x => (x.target as ClapButton).noAnimation = !x.isIntersecting);
-    });
-    this.intersectionObserver.observe(this);
+    ClapButton.intersectionObserver.observe(this);
 
     // const themeColorEl = document.head.querySelector('meta[name=theme-color]') as HTMLMetaElement | null;
     // if (themeColorEl) {
@@ -176,7 +175,7 @@ export class ClapButton extends ConnectedCountElement {
   disconnectedCallback() {
     super.disconnectedCallback();
 
-    this.intersectionObserver.unobserve(this);
+    ClapButton.intersectionObserver.unobserve(this);
 
     // @ts-ignore
     this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
