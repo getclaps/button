@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.0.0-alpha.7
+- Fix ts error
+- Use ts
+- Add intersection observer
+- Make static
+
 ## v1.0.0-alpha.6
 - Rename url to href
 - Update
