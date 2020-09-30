@@ -31,18 +31,18 @@
   "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
   "license": "GPL-3.0",
   "devDependencies": {
-    "rollup": "^2.26.4",
+    "rollup": "^2.28.2",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-terser": "^7.0.0",
+    "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript": "^1.0.1",
     "tslib": "^2.0.1",
-    "typescript": "^3.9.7"
+    "typescript": "^4.0.3"
   },
   "dependencies": {
     "kv-storage-polyfill": "^2.0.0",
-    "lit-element": "^2.3.1",
-    "lit-html": "^1.2.1",
+    "lit-element": "^2.4.0",
+    "lit-html": "^1.3.0",
     "uuid-class": "^0.9.0"
   },
   "repository": {
