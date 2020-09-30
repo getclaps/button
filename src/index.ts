@@ -98,14 +98,10 @@ export class ClapButton extends ConnectedCountElement {
   private _canonical?: string;
   private get canonical() {
     return this._canonical || (() => {
-      const href = this.href || this.url;
-      const metaEl = this.ownerDocument.head.querySelector('link[rel=canonical]') as HTMLLinkElement;
-      const location = metaEl != null
-        ? new URL(metaEl.href)
-        : this.ownerDocument.location
-      return this._canonical = href
-        ? new URL(href, location.origin).href
-        : location.href;
+      const href = this.href || this.url || '';
+      const canonicalEl = this.ownerDocument.head.querySelector('link[rel=canonical]') as HTMLLinkElement;
+      const location = canonicalEl != null ? new URL(canonicalEl.href) : this.ownerDocument.location;
+      return this._canonical = new URL(href, location.href).href
     })();
   }
 
