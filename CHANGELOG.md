@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.0.0-alpha.8
+- Fix canonical url determination
+
 ## v1.0.0-alpha.7
 - Fix ts error
 - Use ts
