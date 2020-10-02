@@ -1,7 +1,7 @@
 import { UUID } from 'uuid-class';
 
 import { ParamsURL, jsonFetch } from './json-request';
-import { proofOfClap } from './util.js';
+import { proofOfClap } from './pow.js';
 
 const API = Reflect.get(window, 'GET_CLAPS_API') || "https://worker.getclaps.dev";
 
