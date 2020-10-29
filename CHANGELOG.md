@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.0.0-alpha.9
+- Rename util
+- Update deps
+- Update license
+- Move poc to common module
+
 ## v1.0.0-alpha.8
 - Fix canonical url determination
 
