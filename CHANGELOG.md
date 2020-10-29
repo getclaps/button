@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.0.0-alpha.10
+- Update tsconfig
+- Update deps
+- Use broadcast channel
+
 ## v1.0.0-alpha.9
 - Rename util
 - Update deps
