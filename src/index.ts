@@ -5,6 +5,7 @@ import { repeat } from 'lit-html/directives/repeat';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 // @ts-ignore
 import { StorageArea } from 'kv-storage-polyfill';
+import { UUID } from "uuid-class";
 
 import { styles } from './styles';
 
@@ -24,6 +25,7 @@ enum ErrorTypes {
 }
 
 interface ClapData {
+  id: string,
   href: string;
   claps: number;
   totalClaps: number;
@@ -122,6 +124,8 @@ export class ClapButton extends ConnectedCountElement {
   }
 
   private msgs!: Map<number, string>;
+  private bc = new BroadcastChannel('clap-button');
+  private uuid = UUID.v4().uuid;
 
   async connectedCallback() {
     super.connectedCallback();
@@ -137,8 +141,7 @@ export class ClapButton extends ConnectedCountElement {
       return;
     }
 
-    // @ts-ignore
-    this.ownerDocument.documentElement.addEventListener('clapped', this.clappedCallback);
+    this.bc.addEventListener('message', this.clappedCallback);
 
     ClapButton.intersectionObserver.observe(this);
 
@@ -170,11 +173,8 @@ export class ClapButton extends ConnectedCountElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-
     ClapButton.intersectionObserver.unobserve(this);
-
-    // @ts-ignore
-    this.ownerDocument.documentElement.removeEventListener('clapped', this.clappedCallback);
+    this.bc.removeEventListener('message', this.clappedCallback)
   }
 
   // Ref-counts all elements with the same `parentHref` and invokes `allDisconnectedCallback` when the count reaches 0.
@@ -183,8 +183,8 @@ export class ClapButton extends ConnectedCountElement {
     cleanUp(this.parentHref);
   }
 
-  private clappedCallback = ({ target, detail: { href, claps } }: CustomEvent<ClapData>) => {
-    if (target !== this && [href, getParentHref(href)].includes(this.canonical)) {
+  private clappedCallback = ({ data: { href, claps, id } }: MessageEvent<ClapData>) => {
+    if (id !== this.uuid && [href, getParentHref(href)].includes(this.canonical)) {
       this.clapped = true;
       this.totalClaps += claps;
       toggleClass(this.styleRootEl, "clap");
@@ -285,10 +285,7 @@ export class ClapButton extends ConnectedCountElement {
     this.styleRootEl.classList.remove('ticking');
     toggleClass(this.styleRootEl, "clap");
 
-    this.dispatchEvent(new CustomEvent<ClapData>("clapped", {
-      bubbles: true,
-      detail: { claps, totalClaps, href: href },
-    }));
+    this.bc.postMessage({ id: this.uuid, claps, totalClaps, href });
 
     // MAYBE: Replace with animation finish event!?
     setTimeout(() => { this.totalClaps = totalClaps }, ANIM_DELAY);
