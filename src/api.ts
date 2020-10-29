@@ -1,7 +1,7 @@
 import { UUID } from 'uuid-class';
-import { proofOfClap } from '@getclaps/poc';
+import { ParamsURL, jsonFetch } from '@werker/json-fetch';
 
-import { ParamsURL, jsonFetch } from './json-request';
+import { proofOfClap } from './poc';
 
 const API = Reflect.get(window, 'GET_CLAPS_API') || "https://worker.getclaps.dev";
 
