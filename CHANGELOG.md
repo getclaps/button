@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.0-alpha.11
+- Update poc.ts
+- Ship polyfill
+
 ## v1.0.0-alpha.10
 - Update tsconfig
 - Update deps
