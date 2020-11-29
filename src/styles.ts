@@ -103,17 +103,21 @@ export const styles = css`
 
 #hand-svg {
   margin-top: 22%;
-  margin-left: 22%; }
+  margin-left: 22%;
+}
+
 #countdown-svg {
   width: 100%;
   height: 100%;
   stroke: var(--clap-button-color, var(--theme-color, rgb(79,177,186)));
-  margin: 0; }
+  margin: 0;
+}
 
 .countdown {
   fill: none; 
   transform: rotateZ(0deg);
-  transform-origin: center; }
+  transform-origin: center;
+}
 
 .countdown circle {
   stroke-width: 2px;
@@ -121,108 +125,148 @@ export const styles = css`
   stroke-linecap: round;
   stroke-dasharray: 308 308;
   transform: rotate(-90deg);
-  transform-origin: center; }
+  transform-origin: center;
+}
 
 .style-root.ticking .countdown circle {
   animation-timing-function: ease;
   animation-name: countdown;
-  animation-duration: 2.5s; }
+  animation-duration: 2.5s; 
+}
 
 .style-root.loading .countdown {
-  animation: 2s linear infinite svg-animation; }
+  animation: 2s linear infinite svg-animation; 
+}
+
 .style-root.loading .countdown circle {
   animation: 1.4s ease-in-out infinite both circle-animation;
   stroke-dasharray: 308;
-  stroke-dashoffset: 302; }
+  stroke-dashoffset: 302; 
+}
 
 @keyframes svg-animation {
-  0% {
-    transform: rotateZ(-90deg); }
-  100% {
-    transform: rotateZ(270deg); } }
+  0% { 
+    transform: rotateZ(-90deg);
+  }
+  100% { 
+    transform: rotateZ(270deg);
+  }
+}
 
 @keyframes circle-animation {
   0%,
   15% {
     stroke-dashoffset: 280;
-    transform: rotate(0); }
+    transform: rotate(0); 
+  }
   50%,
   65% {
     stroke-dashoffset: 75;
-    transform: rotate(45deg); }
+    transform: rotate(45deg); 
+  }
   100% {
     stroke-dashoffset: 280;
-    transform: rotate(360deg); } }
+    transform: rotate(360deg); 
+  }
+}
 
 @keyframes countdown {
   0% {
-    stroke-dasharray: 308 308; }
-  25% {
-    stroke-dasharray: 308 308; }
+    stroke-dasharray: 308 308;
+  }
+  50% {
+    stroke-dasharray: 308 308;
+  }
   100% {
-    stroke-dasharray: 0 308; } }
+    stroke-dasharray: 0 308;
+  }
+}
 
 @keyframes explode {
   0% {
     transform: translateX(10px);
-    opacity: 0; }
+    opacity: 0;
+  }
   50% {
-    opacity: 1; }
+    opacity: 1;
+  }
   100% {
     opacity: 0;
-    transform: translateX(25px); } }
+    transform: translateX(25px);
+  }
+}
 
 @keyframes shockwave {
   0% {
     transform: scale(1);
     opacity: 1; 
-    box-shadow: 0 0 2px, inset 0 0 1px; }
+    box-shadow: 0 0 2px, inset 0 0 1px;
+  }
   89.99% {
     transform: scale(1);
     opacity: 0;
-    box-shadow: 0 0 50px, inset 0 0 10px; }
+    box-shadow: 0 0 50px, inset 0 0 10px;
+  }
   90%, 100% {
     transform: scale(1);
     opacity: 0;
-    box-shadow: 0 0 2px, inset 0 0 1px; } }
+    box-shadow: 0 0 2px, inset 0 0 1px;
+  }
+}
 
 @keyframes pulse {
   0% {
-    transform: scale(1); }
+    transform: scale(1);
+  }
   25% {
-    transform: scale(1.1); }
+    transform: scale(1.1);
+  }
   100% {
-    transform: scale(1); } }
+    transform: scale(1);
+  }
+}
 
 @keyframes hide-then-show {
   0% {
     opacity: 1;
-    transform: translateY(0); }
+    transform: translateY(0);
+  }
   20% {
     opacity: 0;
-    transform: translateY(-10px); }
+    transform: translateY(-10px);
+  }
   50% {
-    transform: translateY(10px); }
+    transform: translateY(10px);
+  }
   80% {
     transform: translateY(10px);
-    opacity: 0; }
+    opacity: 0;
+  }
   100% {
     opacity: 1;
-    transform: translateY(0); } }
+    transform: translateY(0); 
+  }
+}
 
 @keyframes hide-then-show-inverse {
   0% {
     opacity: 1;
-    transform: translateY(0); }
+    transform: translateY(0);
+  }
   20% {
     opacity: 0;
-    transform: translateY(10px); }
+    transform: translateY(10px);
+  }
   50% {
-    transform: translateY(-10px); }
+    transform: translateY(-10px);
+  }
   80% {
     transform: translateY(-10px);
-    opacity: 0; }
+    opacity: 0;
+  }
   100% {
     opacity: 1;
-    transform: translateY(0); } }
+    transform: translateY(0);
+  }
+}
 `;
