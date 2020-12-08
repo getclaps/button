@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.0.0-alpha.12
+- Format
+- Use poc lib
+- Update deps
+
 ## v1.0.0-alpha.11
 - Update poc.ts
 - Ship polyfill
