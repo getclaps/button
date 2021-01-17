@@ -134,11 +134,11 @@ export const styles = css`
   animation-duration: 2.5s; 
 }
 
-.style-root.loading .countdown {
+.style-root.loading:not(.no-animation) .countdown {
   animation: 2s linear infinite svg-animation; 
 }
 
-.style-root.loading .countdown circle {
+.style-root.loading:not(.no-animation) .countdown circle {
   animation: 1.4s ease-in-out infinite both circle-animation;
   stroke-dasharray: 308;
   stroke-dashoffset: 302; 
