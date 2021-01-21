@@ -1,13 +1,14 @@
 import 'broadcastchannel-polyfill';
 
+import { UUID } from "uuid-class";
 import { html, svg, LitElement, customElement, query, property } from "lit-element";
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
 import { repeat } from 'lit-html/directives/repeat';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
+
 // @ts-ignore
 import { StorageArea } from 'kv-storage-polyfill';
-import { UUID } from "uuid-class";
 
 import { styles } from './styles';
 
@@ -34,7 +35,7 @@ interface ClapData {
 }
 
 const WEBSITE = "https://getclaps.dev";
-const TIMER = 2500;
+const TIMER = 3000;
 const ANIM_DELAY = 250;
 
 const storage = new StorageArea('clap-button');
@@ -84,8 +85,9 @@ export class ClapButton extends ConnectedCountElement {
 
   @query('.style-root') private styleRootEl!: HTMLElement;
 
-  @property({ type: String, reflect: true, attribute: 'text-placement' }) textPlacement: TextPlacement = TextPlacement.Top;
+  @property({ type: String, reflect: true, attribute: 'text-placement' }) textPlacement: TextPlacement = TextPlacement.Bottom;
   @property({ type: Boolean, reflect: true }) noWave: boolean = false;
+  @property({ type: Boolean, reflect: true }) messages: boolean = false;
 
   @property({ type: String, reflect: false }) href!: string;
   @property({ type: String, reflect: false }) url!: string;
@@ -105,7 +107,7 @@ export class ClapButton extends ConnectedCountElement {
       const href = this.href || this.url || '';
       const canonicalEl = this.ownerDocument.head.querySelector('link[rel=canonical]') as HTMLLinkElement;
       const location = canonicalEl != null ? new URL(canonicalEl.href) : this.ownerDocument.location;
-      return this._canonical = new URL(href, location.href).href
+      return this._canonical = new URL(href, location.href).href;
     })();
   }
 
@@ -125,7 +127,7 @@ export class ClapButton extends ConnectedCountElement {
     return usp.get('referrer') || usp.get('referer') || this.ownerDocument.referrer;
   }
 
-  private msgs!: Map<number, string>;
+  private hints!: Map<number, string>;
   private bc = new BroadcastChannel('clap-button');
   private uuid = UUID.v4().uuid;
 
@@ -152,11 +154,10 @@ export class ClapButton extends ConnectedCountElement {
     //   this.el.style.setProperty('--theme-color', themeColorEl.content);
     // }
 
-    this.msgs = new Map(
-      Array.from(this.ownerDocument.querySelector('clap-config')?.querySelectorAll('clap-text') ?? [])
-        ?.map((x => [(x as ClapText).at, (x as ClapText).innerHTML] as [number, string]))
-        ?.sort(([a], [b]) => b - a)
-    );
+    const clapTexts: ClapText[] = Array.from(this.ownerDocument.querySelector('clap-config')?.querySelectorAll('clap-text') ?? []);
+    this.hints = new Map(clapTexts
+      ?.map((x => [x.at, x.innerHTML] as const))
+      ?.sort(([a], [b]) => b - a));
 
     this.loading = true;
     this.clapped = await storage.get(this.canonical) != null;
@@ -259,9 +260,9 @@ export class ClapButton extends ConnectedCountElement {
       'container-top': this.textPlacement === TextPlacement.Bottom,
       'container-bottom': this.textPlacement === TextPlacement.Top,
     })}>
-          <div style="font-size:smaller">
-            ${this.clicking ? unsafeHTML([...this.msgs].find(([x]) => this.totalClaps >= x)?.[1] ?? '') : ''}
-          </div>
+          ${this.messages ? html`<div style="font-size:smaller">
+            ${this.clicking ? unsafeHTML([...this.hints].find(([x]) => this.totalClaps >= x)?.[1] ?? '') : ''}
+          </div>` : null}
         </div>
         ${hand}
         ${sparkle}

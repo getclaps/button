@@ -5,7 +5,7 @@ const refCountMap = new Map<any, number>();
 const ref = Symbol('refCountKey');
 
 export class ConnectedCountElement extends LitElement  {
-  get connectedCountKey(): string { throw Error() }
+  get connectedCountKey() { return '' }
   allDisconnectedCallback() {};
 
   private [ref]!: any;

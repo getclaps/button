@@ -131,7 +131,7 @@ export const styles = css`
 .style-root.ticking .countdown circle {
   animation-timing-function: ease;
   animation-name: countdown;
-  animation-duration: 2.5s; 
+  animation-duration: 3s; 
 }
 
 .style-root.loading:not(.no-animation) .countdown {
