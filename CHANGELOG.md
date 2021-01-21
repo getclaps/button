@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.0.0-alpha.13
+- Update license
+- Don't play animation for below fold buttons
+- Update deps
+- Update component
+
 ## v1.0.0-alpha.12
 - Format
 - Use poc lib
