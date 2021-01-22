@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.0.0-alpha.14
+- Revert tslib uninstall
+
 ## v1.0.0-alpha.13
 - Update license
 - Don't play animation for below fold buttons
