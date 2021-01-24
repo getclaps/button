@@ -1,7 +1,7 @@
 import 'broadcastchannel-polyfill';
-import { StorageArea } from 'kv-storage-polyfill';
+import 'fast-text-encoding';
 
-import { UUID } from "uuid-class";
+import { StorageArea } from 'kv-storage-polyfill';
 import { html, svg, LitElement, customElement, query, property } from "lit-element";
 import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
@@ -20,13 +20,12 @@ enum TextPlacement {
 
 enum ErrorTypes {
   PaymentRequired = 1,
-  HTTPSRequired,
   CryptoRequired,
   Generic,
 }
 
 interface ClapData {
-  btnId: string,
+  btnId: number,
   href: string;
   claps: number;
   totalClaps: number;
@@ -79,9 +78,11 @@ export class ClapText extends LitElement {
 export class ClapButton extends ConnectedCountElement {
   static styles = styles;
 
-  static intersectionObserver = new IntersectionObserver(entries => {
+  private static intersectionObserver = new IntersectionObserver(entries => {
     entries.forEach(x => (x.target as ClapButton).isIntersecting = x.isIntersecting);
   });
+
+  private static btnIds = 0;
 
   @query('.style-root') private styleRoot!: HTMLElement;
 
@@ -124,16 +125,10 @@ export class ClapButton extends ConnectedCountElement {
 
   #messages!: Map<number, string>;
   #channel = new BroadcastChannel('clap-button');
-  #btnId = UUID.v4().uuid;
+  #btnId = ClapButton.btnIds++;
 
-  async connectedCallback() {
+  connectedCallback() {
     super.connectedCallback();
-
-    const { location } = this.ownerDocument;
-    if (location.hostname !== 'localhost' && location.protocol !== 'https:') {
-      this.error = ErrorTypes.HTTPSRequired;
-      return;
-    }
 
     if ('crypto' in window && 'subtle' in window.crypto && 'digest' in window.crypto.subtle) { /* ok */ } else {
       this.error = ErrorTypes.CryptoRequired;
@@ -152,19 +147,21 @@ export class ClapButton extends ConnectedCountElement {
     const clapTexts: ClapText[] = Array.from(this.ownerDocument.querySelector('clap-config')?.querySelectorAll('clap-text') ?? []);
     this.#messages = new Map(clapTexts?.map((x => [x.at, x.innerHTML] as const)).sort(([a], [b]) => b - a));
 
-    this.loading = true;
-    this.clapped = await storage.get(this.canonical) != null;
+    ;(async () => {
+      this.loading = true;
+      this.clapped = await storage.get(this.canonical) != null;
 
-    try {
-      const { claps } = await getClaps(this.canonical, this.parentHref, this.referrer);
-      this.loading = false;
-      this.ready = true;
-      this.uiClaps = claps;
-    } catch (err) {
-      this.loading = false;
-      this.ready = false;
-      this.error = err.status === 402 ? ErrorTypes.PaymentRequired : ErrorTypes.Generic;
-    }
+      try {
+        const { claps } = await getClaps(this.canonical, this.parentHref, this.referrer);
+        this.loading = false;
+        this.ready = true;
+        this.uiClaps = claps;
+      } catch (err) {
+        this.loading = false;
+        this.ready = false;
+        this.error = err.status === 402 ? ErrorTypes.PaymentRequired : ErrorTypes.Generic;
+      }
+    })();
   }
 
   disconnectedCallback() {
@@ -235,7 +232,6 @@ export class ClapButton extends ConnectedCountElement {
           <div class="count">
             ${this.clicking ? '+' : ''}${this.ready ? formatClaps(this.uiClaps) : ''}
             ${this.error === ErrorTypes.PaymentRequired ? html`<a class="error" href="${WEBSITE}">Payment required</a>` : null}
-            ${this.error === ErrorTypes.HTTPSRequired ? html`<span class="error">HTTPS required</span>` : null}
             ${this.error === ErrorTypes.CryptoRequired ? html`<span class="error">Crypto required</span>` : null}
             ${this.error === ErrorTypes.Generic ? html`<span class="error">Error</span>` : null}
           </div>

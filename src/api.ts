@@ -1,10 +1,15 @@
 import { UUID } from 'uuid-class';
-import { ParamsURL, jsonFetch } from '@werker/json-fetch';
 import { proofOfClap } from '@getclaps/proof-of-clap';
 
 const API = Reflect.get(window, 'GET_CLAPS_API') || "https://worker.getclaps.dev";
 
 type HrefIndex = { [href: string]: { claps: number } };
+
+function paramsURL(url: string, params?: Record<string, string> | null, base?: string | URL) {
+  const u = new URL(url, base);
+  for (const [k, v] of Object.entries(params || {})) u.searchParams.append(k, v);
+  return u.href;
+}
 
 const fetchMap = new Map<string, Promise<HrefIndex>>();
 let referrerSent = false;
@@ -13,14 +18,17 @@ export const getClaps = async (href: string, parentHref: string, referrer: strin
   let indexPromise = fetchMap.get(parentHref);
   if (!indexPromise) {
     fetchMap.set(parentHref, indexPromise = fetchMap.get(parentHref) || (async () => {
-      const response = await jsonFetch(new ParamsURL('/views', { 
-        href: parentHref, 
-        ...referrer && !referrerSent ? { referrer } : {} 
-      }, API), { 
+      const url = paramsURL('/views', {
+        href: parentHref,
+        ...referrer && !referrerSent ? { referrer } : {}
+      }, API);
+
+      const response = await fetch(url, {
         method: 'POST',
         body: null,
         mode: 'cors',
         credentials: 'include',
+        headers: { 'accept': 'application/json' },
       });
 
       referrerSent = true;
@@ -53,13 +61,14 @@ export const mine = async (claps: number, href: string) => {
 }
 
 export const updateClapsApi = async (claps: number, href: string, parentHref: string, id: UUID, nonce: number): Promise<{ claps: number }> => {
-  const responseP = jsonFetch(new ParamsURL('/claps', { href }, API), {
+  const url = paramsURL('/claps', { href }, API)
+  const response = await fetch(url, {
     method: 'POST',
-    body: { claps, id, nonce },
+    body: JSON.stringify({ claps, id, nonce }),
     mode: 'cors',
     credentials: 'include',
+    headers: { 'accept': 'application/json' },
   });
-  const response = await responseP;
   if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
     fetchMap.delete(parentHref); // TODO: update in place instead?
     return response.clone().json();
