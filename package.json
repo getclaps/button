@@ -3,8 +3,10 @@
   "version": "1.0.0-alpha.14",
   "description": "",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "module": "lib/index.js",
+  "browser": "dist/index.js",
+  "unpkg": "dist/index.js",
   "files": [
     "lib",
     "dist"
@@ -15,18 +17,20 @@
   "scripts": {
     "clean": "rm -rf lib dist",
     "test": "exit 0",
-    "build:tsc": "tsc -d --outDir lib",
-    "watch:tsc": "tsc -d --outDir lib -w",
+    "build:tsc": "tsc -d",
+    "watch:tsc": "tsc -d -w",
     "build:rollup": "rollup -c",
     "watch:rollup": "rollup -c -w",
     "build": "npm run build:tsc & npm run build:rollup & wait",
     "watch": "npm run watch:tsc & npm run watch:rollup",
     "dev": "npm run watch & http-server -p 3337",
-    "changelog:head": "echo \"\\n\\n## v$npm_package_version\" | bin/after.js 'CHANGELOG' CHANGELOG.md",
-    "changelog:list": "git log v$npm_package_version..HEAD --pretty=format:'- %s' --reverse | bin/after.js 'CHANGELOG' CHANGELOG.md",
+    "changelog:head": "echo \"\\n\\n## v$npm_package_version\" | after.js 'CHANGELOG' CHANGELOG.md",
+    "changelog:list": "git log v$npm_package_version..HEAD --pretty=format:'- %s' --reverse | after.js 'CHANGELOG' CHANGELOG.md",
     "preversion": "npm run changelog:list",
     "version": "npm run changelog:head && git add .",
-    "prepack": "npm run clean && npm run build"
+    "prepack": "npm run clean && npm run build",
+    "install-bin": "for f in `ls .bin`; do ln -sf ../../.bin/${f} node_modules/.bin/${f}; done",
+    "uninstall-bin": "for f in `ls .bin`; do rm node_modules/.bin/${f}; done"
   },
   "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
   "license": "AGPL-3.0-only",
