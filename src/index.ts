@@ -1,4 +1,5 @@
 import 'broadcastchannel-polyfill';
+import { StorageArea } from 'kv-storage-polyfill';
 
 import { UUID } from "uuid-class";
 import { html, svg, LitElement, customElement, query, property } from "lit-element";
@@ -6,9 +7,6 @@ import { classMap } from 'lit-html/directives/class-map';
 import { styleMap } from 'lit-html/directives/style-map';
 import { repeat } from 'lit-html/directives/repeat';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
-
-// @ts-ignore
-import { StorageArea } from 'kv-storage-polyfill';
 
 import { styles } from './styles';
 
@@ -28,7 +26,7 @@ enum ErrorTypes {
 }
 
 interface ClapData {
-  id: string,
+  btnId: string,
   href: string;
   claps: number;
   totalClaps: number;
@@ -81,55 +79,52 @@ export class ClapText extends LitElement {
 export class ClapButton extends ConnectedCountElement {
   static styles = styles;
 
-  el: HTMLElement = this;
+  static intersectionObserver = new IntersectionObserver(entries => {
+    entries.forEach(x => (x.target as ClapButton).isIntersecting = x.isIntersecting);
+  });
 
-  @query('.style-root') private styleRootEl!: HTMLElement;
+  @query('.style-root') private styleRoot!: HTMLElement;
 
   @property({ type: String, reflect: true, attribute: 'text-placement' }) textPlacement: TextPlacement = TextPlacement.Bottom;
   @property({ type: Boolean, reflect: true }) noWave: boolean = false;
   @property({ type: Boolean, reflect: true }) messages: boolean = false;
-
   @property({ type: String, reflect: false }) href!: string;
   @property({ type: String, reflect: false }) url!: string;
 
-  @property() private totalClaps: number = 0;
+  @property() private uiClaps: number = 0;
+  @property() private bufferedClaps: number = 0;
   @property() private loading: boolean = false;
   @property() private clapped: boolean = false;
   @property() private clicking: boolean = false;
-  @property() private bufferedClaps: number = 0;
   @property() private ready: boolean = false;
   @property() private error: ErrorTypes | null = null;
-  @property() private noAnimation: boolean = false;
+  @property() private isIntersecting: boolean = false;
 
-  private _canonical?: string;
-  private get canonical() {
-    return this._canonical || (() => {
+  #canonical?: string;
+  get canonical() {
+    return this.#canonical || (() => {
       const href = this.href || this.url || '';
       const canonicalEl = this.ownerDocument.head.querySelector('link[rel=canonical]') as HTMLLinkElement;
       const location = canonicalEl != null ? new URL(canonicalEl.href) : this.ownerDocument.location;
-      return this._canonical = new URL(href, location.href).href;
+      return this.#canonical = new URL(href, location.href).href;
     })();
   }
 
-  private _parentHref?: string;
-  private get parentHref() {
-    return this._parentHref || (() => {
-      return this._parentHref = getParentHref(this.canonical);
+  #parentHref?: string;
+  get parentHref() {
+    return this.#parentHref || (() => {
+      return this.#parentHref = getParentHref(this.canonical);
     })();
   }
 
-  private static intersectionObserver = new IntersectionObserver(entries => {
-    entries.forEach(x => (x.target as ClapButton).noAnimation = !x.isIntersecting);
-  });
-
-  private get referrer() {
+  get referrer() {
     const usp = new URLSearchParams(this.ownerDocument.location.search);
     return usp.get('referrer') || usp.get('referer') || this.ownerDocument.referrer;
   }
 
-  private hints!: Map<number, string>;
-  private bc = new BroadcastChannel('clap-button');
-  private uuid = UUID.v4().uuid;
+  #messages!: Map<number, string>;
+  #channel = new BroadcastChannel('clap-button');
+  #btnId = UUID.v4().uuid;
 
   async connectedCallback() {
     super.connectedCallback();
@@ -145,7 +140,7 @@ export class ClapButton extends ConnectedCountElement {
       return;
     }
 
-    this.bc.addEventListener('message', this.clappedCallback);
+    this.#channel.addEventListener('message', this.#clappedCallback);
 
     ClapButton.intersectionObserver.observe(this);
 
@@ -155,9 +150,7 @@ export class ClapButton extends ConnectedCountElement {
     // }
 
     const clapTexts: ClapText[] = Array.from(this.ownerDocument.querySelector('clap-config')?.querySelectorAll('clap-text') ?? []);
-    this.hints = new Map(clapTexts
-      ?.map((x => [x.at, x.innerHTML] as const))
-      ?.sort(([a], [b]) => b - a));
+    this.#messages = new Map(clapTexts?.map((x => [x.at, x.innerHTML] as const)).sort(([a], [b]) => b - a));
 
     this.loading = true;
     this.clapped = await storage.get(this.canonical) != null;
@@ -166,7 +159,7 @@ export class ClapButton extends ConnectedCountElement {
       const { claps } = await getClaps(this.canonical, this.parentHref, this.referrer);
       this.loading = false;
       this.ready = true;
-      this.totalClaps = claps;
+      this.uiClaps = claps;
     } catch (err) {
       this.loading = false;
       this.ready = false;
@@ -177,21 +170,13 @@ export class ClapButton extends ConnectedCountElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     ClapButton.intersectionObserver.unobserve(this);
-    this.bc.removeEventListener('message', this.clappedCallback)
+    this.#channel.removeEventListener('message', this.#clappedCallback)
   }
 
   // Ref-counts all elements with the same `parentHref` and invokes `allDisconnectedCallback` when the count reaches 0.
   get connectedCountKey() { return this.parentHref }
-  allDisconnectedCallback() {
+  protected allDisconnectedCallback() {
     cleanUp(this.parentHref);
-  }
-
-  private clappedCallback = ({ data: { href, claps, id } }: MessageEvent<ClapData>) => {
-    if (id !== this.uuid && [href, getParentHref(href)].includes(this.canonical)) {
-      this.clapped = true;
-      this.totalClaps += claps;
-      toggleClass(this.styleRootEl, "clap");
-    }
   }
 
   render() {
@@ -235,7 +220,7 @@ export class ClapButton extends ConnectedCountElement {
       'loading': this.loading,
       'clapped': this.clapped,
       'no-shockwave': this.noWave || !this.ready,
-      'no-animation': this.noAnimation,
+      'no-animation': !this.isIntersecting,
     })}
         style=${styleMap({
       ...this.error != null ? { '--clap-button-color': 'indianred' } : {}
@@ -248,7 +233,7 @@ export class ClapButton extends ConnectedCountElement {
       'container-bottom': this.textPlacement === TextPlacement.Bottom,
     })}>
           <div class="count">
-            ${this.clicking ? '+' : ''}${this.ready ? formatClaps(this.totalClaps) : ''}
+            ${this.clicking ? '+' : ''}${this.ready ? formatClaps(this.uiClaps) : ''}
             ${this.error === ErrorTypes.PaymentRequired ? html`<a class="error" href="${WEBSITE}">Payment required</a>` : null}
             ${this.error === ErrorTypes.HTTPSRequired ? html`<span class="error">HTTPS required</span>` : null}
             ${this.error === ErrorTypes.CryptoRequired ? html`<span class="error">Crypto required</span>` : null}
@@ -261,7 +246,7 @@ export class ClapButton extends ConnectedCountElement {
       'container-bottom': this.textPlacement === TextPlacement.Top,
     })}>
           ${this.messages ? html`<div style="font-size:smaller">
-            ${this.clicking ? unsafeHTML([...this.hints].find(([x]) => this.totalClaps >= x)?.[1] ?? '') : ''}
+            ${this.clicking ? unsafeHTML([...this.#messages].find(([x]) => this.uiClaps >= x)?.[1] ?? '') : ''}
           </div>` : null}
         </div>
         ${hand}
@@ -269,35 +254,14 @@ export class ClapButton extends ConnectedCountElement {
         ${circle}
         <button
           ?disabled=${this.loading || !this.ready}
-          @mousedown=${this.loading || !this.ready ? null : this.clickCallback}
-          @touchstart=${this.loading || !this.ready ? null : this.clickCallback}
+          @mousedown=${this.loading || !this.ready ? null : this.#clickCallback}
+          @touchstart=${this.loading || !this.ready ? null : this.#clickCallback}
         ></button>
       </div>
       `;
   }
 
-  private updateClaps = debounce(async () => {
-    const claps = this.bufferedClaps;
-    this.bufferedClaps = 0;
-    this.loading = true;
-    const { href, id, nonce } = await mine(claps, this.canonical);
-    const { claps: totalClaps } = await updateClapsApi(claps, href, this.parentHref, id, nonce);
-
-    this.loading = false;
-    this.clicking = false;
-    this.styleRootEl.classList.remove('ticking');
-    toggleClass(this.styleRootEl, "clap");
-
-    this.bc.postMessage({ id: this.uuid, claps, totalClaps, href });
-
-    // MAYBE: Replace with animation finish event!?
-    setTimeout(() => { this.totalClaps = totalClaps }, ANIM_DELAY);
-
-    const data = await storage.get(href) || { claps: 0 };
-    await storage.set(href, { ...data, claps: data.claps + claps });
-  }, TIMER);
-
-  private clickCallback = (event: MouseEvent) => {
+  #clickCallback = (event: MouseEvent) => {
     if (event.button !== 0) {
       return;
     }
@@ -308,10 +272,39 @@ export class ClapButton extends ConnectedCountElement {
     this.clicking = true;
     this.bufferedClaps++;
 
-    toggleClass(this.styleRootEl, "clap", "ticking");
+    toggleClass(this.styleRoot, "clap", "ticking");
 
-    this.updateClaps();
+    this.#updateClaps();
 
-    this.totalClaps = this.bufferedClaps
+    this.uiClaps = this.bufferedClaps;
+  }
+
+  #updateClaps = debounce(async () => {
+    const claps = this.bufferedClaps;
+    this.bufferedClaps = 0;
+    this.loading = true;
+    const { href, id, nonce } = await mine(claps, this.canonical);
+    const { claps: totalClaps } = await updateClapsApi(claps, href, this.parentHref, id, nonce);
+
+    this.loading = false;
+    this.clicking = false;
+    this.styleRoot.classList.remove('ticking');
+    toggleClass(this.styleRoot, "clap");
+
+    this.#channel.postMessage({ btnId: this.#btnId, claps, totalClaps, href });
+
+    // MAYBE: Replace with animation finish event!?
+    setTimeout(() => { this.uiClaps = totalClaps }, ANIM_DELAY);
+
+    const data = await storage.get(href) ?? { claps: 0 };
+    await storage.set(href, { ...data, claps: data.claps + claps });
+  }, TIMER);
+
+  #clappedCallback = ({ data: { href, claps, btnId } }: MessageEvent<ClapData>) => {
+    if (btnId !== this.#btnId && [href, getParentHref(href)].includes(this.canonical)) {
+      this.clapped = true;
+      this.uiClaps += claps;
+      toggleClass(this.styleRoot, "clap");
+    }
   }
 }
