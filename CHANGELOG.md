@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.0.0-alpha.15
+- Update package.json
+- Refactor
+- Fix for EdgeHTML
+
 ## v1.0.0-alpha.14
 - Revert tslib uninstall
 
