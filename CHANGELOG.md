@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.0-alpha.17
+- Use pseudo-random button id
+- Fix API call
+
 ## v1.0.0-alpha.16
 - Move to MIT license
 - Fix multi tab bug
