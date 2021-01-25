@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.0-alpha.16
+- Move to MIT license
+- Fix multi tab bug
+
 ## v1.0.0-alpha.15
 - Update package.json
 - Refactor
