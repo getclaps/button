@@ -123,7 +123,7 @@ export class ClapButton extends ConnectedCountElement {
 
   #messages!: Map<number, string>;
   #channel = new BroadcastChannel('clap-button');
-  #btnId = crypto.getRandomValues(new Uint32Array(1))[0];
+  #btnId = Math.trunc(Math.random() * 1_000_000_000);
 
   connectedCallback() {
     super.connectedCallback();
