@@ -67,7 +67,10 @@ export const updateClapsApi = async (claps: number, href: string, parentHref: st
     body: JSON.stringify({ claps, id, nonce }),
     mode: 'cors',
     credentials: 'include',
-    headers: { 'accept': 'application/json' },
+    headers: { 
+      'accept': 'application/json', 
+      'content-type': 'application/json;charset=UTF-8',
+    },
   });
   if (response.ok && response.headers.get('Content-Type')?.includes('json')) {
     fetchMap.delete(parentHref); // TODO: update in place instead?
