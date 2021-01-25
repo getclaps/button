@@ -33,7 +33,7 @@
     "uninstall-bin": "for f in `ls .bin`; do rm node_modules/.bin/${f}; done"
   },
   "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "devDependencies": {
     "rollup": "^2.37.1",
     "rollup-plugin-commonjs": "^10.1.0",
