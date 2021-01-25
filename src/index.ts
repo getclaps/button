@@ -82,8 +82,6 @@ export class ClapButton extends ConnectedCountElement {
     entries.forEach(x => (x.target as ClapButton).isIntersecting = x.isIntersecting);
   });
 
-  private static btnIds = 0;
-
   @query('.style-root') private styleRoot!: HTMLElement;
 
   @property({ type: String, reflect: true, attribute: 'text-placement' }) textPlacement: TextPlacement = TextPlacement.Bottom;
@@ -125,7 +123,7 @@ export class ClapButton extends ConnectedCountElement {
 
   #messages!: Map<number, string>;
   #channel = new BroadcastChannel('clap-button');
-  #btnId = ClapButton.btnIds++;
+  #btnId = crypto.getRandomValues(new Uint32Array(1))[0];
 
   connectedCallback() {
     super.connectedCallback();
