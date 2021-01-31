@@ -1,7 +1,7 @@
 import { UUID } from 'uuid-class';
 import { proofOfClap } from '@getclaps/proof-of-clap';
 
-const API = Reflect.get(window, 'GET_CLAPS_API') || "https://worker.getclaps.dev";
+const API = Reflect.get(window, 'GET_CLAPS_API') || "https://worker.getclaps.app";
 
 type HrefIndex = { [href: string]: { claps: number } };
 
