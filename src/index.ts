@@ -31,7 +31,7 @@ interface ClapData {
   totalClaps: number;
 }
 
-const WEBSITE = "https://getclaps.dev";
+const WEBSITE = "https://getclaps.app";
 const TIMER = 3000;
 const ANIM_DELAY = 250;
 
