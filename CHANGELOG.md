@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.0.0-alpha.19
+- Fix payment link
+
 ## v1.0.0-alpha.18
 - Update default url
 
