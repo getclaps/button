@@ -1,5 +1,3 @@
-import 'broadcastchannel-polyfill';
-
 import { StorageArea } from 'kv-storage-polyfill';
 import { html, svg, LitElement, customElement, query, property } from "lit-element";
 import { classMap } from 'lit-html/directives/class-map';
@@ -118,7 +116,7 @@ export class ClapButton extends ConnectedCountElement {
   }
 
   #messages!: Map<number, string>;
-  #channel = new BroadcastChannel('clap-button');
+  #channel = 'BroadcastChannel' in window ? new BroadcastChannel('clap-button') : null;
   #btnId = Math.trunc(Math.random() * 1_000_000_000); // pseudo-random ok
 
   connectedCallback() {
@@ -129,7 +127,7 @@ export class ClapButton extends ConnectedCountElement {
       return;
     }
 
-    this.#channel.addEventListener('message', this.#clappedCallback);
+    this.#channel?.addEventListener('message', this.#clappedCallback);
 
     ClapButton.intersectionObserver.observe(this);
 
@@ -173,7 +171,7 @@ export class ClapButton extends ConnectedCountElement {
     super.disconnectedCallback();
     ClapButton.intersectionObserver.unobserve(this);
     this.#configMutationObserver.disconnect();
-    this.#channel.removeEventListener('message', this.#clappedCallback);
+    this.#channel?.removeEventListener('message', this.#clappedCallback);
   }
 
   // Ref-counts all elements with the same `parentHref` and invokes `allDisconnectedCallback` when the count reaches 0.
@@ -293,13 +291,18 @@ export class ClapButton extends ConnectedCountElement {
     this.styleRoot.classList.remove('ticking');
     toggleClass(this.styleRoot, "clap");
 
-    this.#channel.postMessage({ btnId: this.#btnId, claps, totalClaps, href });
+    const data = { btnId: this.#btnId, claps, totalClaps, href };
+    if (this.#channel) {
+      this.#channel.postMessage(data);
+    } else {
+      this.#clappedCallback({ data } as MessageEvent)
+    }
 
     // MAYBE: Replace with animation finish event!?
     setTimeout(() => { this.uiClaps = totalClaps }, ANIM_DELAY);
 
-    const data = await storage.get(href) ?? { claps: 0 };
-    await storage.set(href, { ...data, claps: data.claps + claps });
+    const { claps: storageClaps, ...storageData } = await storage.get(href) ?? { claps: 0 };
+    await storage.set(href, { ...storageData, claps: storageClaps + claps });
   }, TIMER);
 
   #clappedCallback = ({ data: { href, claps, btnId } }: MessageEvent<ClapData>) => {
