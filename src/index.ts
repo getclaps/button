@@ -1,5 +1,4 @@
 import 'broadcastchannel-polyfill';
-import 'fast-text-encoding';
 
 import { StorageArea } from 'kv-storage-polyfill';
 import { html, svg, LitElement, customElement, query, property } from "lit-element";
@@ -52,7 +51,7 @@ const toggleClass = (element: HTMLElement, ...cls: string[]) => {
 };
 
 const debounce = (fn: (...args: any[]) => void, delay: number) => {
-  let timer: NodeJS.Timeout;
+  let timer: number;
   return function (...args: any[]) {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
@@ -82,6 +81,8 @@ export class ClapButton extends ConnectedCountElement {
     entries.forEach(x => (x.target as ClapButton).isIntersecting = x.isIntersecting);
   });
 
+  #configMutationObserver!: MutationObserver;
+
   @query('.style-root') private styleRoot!: HTMLElement;
 
   @property({ type: String, reflect: true, attribute: 'text-placement' }) textPlacement: TextPlacement = TextPlacement.Bottom;
@@ -99,21 +100,16 @@ export class ClapButton extends ConnectedCountElement {
   @property() private error: ErrorTypes | null = null;
   @property() private isIntersecting: boolean = false;
 
-  #canonical?: string;
+  #canonicalEl!: HTMLLinkElement | null;
   get canonical() {
-    return this.#canonical || (() => {
-      const href = this.href || this.url || '';
-      const canonicalEl = this.ownerDocument.head.querySelector('link[rel=canonical]') as HTMLLinkElement;
-      const location = canonicalEl != null ? new URL(canonicalEl.href) : this.ownerDocument.location;
-      return this.#canonical = new URL(href, location.href).href;
-    })();
+    const href = this.href || this.url || '';
+    const canonicalEl = this.#canonicalEl = (this.#canonicalEl || this.ownerDocument.head.querySelector<HTMLLinkElement>('link[rel=canonical]'));
+    const location = canonicalEl != null ? new URL(canonicalEl.href) : this.ownerDocument.location;
+    return new URL(href, location.origin).href;
   }
 
-  #parentHref?: string;
   get parentHref() {
-    return this.#parentHref || (() => {
-      return this.#parentHref = getParentHref(this.canonical);
-    })();
+    return getParentHref(this.canonical);
   }
 
   get referrer() {
@@ -123,7 +119,7 @@ export class ClapButton extends ConnectedCountElement {
 
   #messages!: Map<number, string>;
   #channel = new BroadcastChannel('clap-button');
-  #btnId = Math.trunc(Math.random() * 1_000_000_000);
+  #btnId = Math.trunc(Math.random() * 1_000_000_000); // pseudo-random ok
 
   connectedCallback() {
     super.connectedCallback();
@@ -142,8 +138,19 @@ export class ClapButton extends ConnectedCountElement {
     //   this.el.style.setProperty('--theme-color', themeColorEl.content);
     // }
 
-    const clapTexts: ClapText[] = Array.from(this.ownerDocument.querySelector('clap-config')?.querySelectorAll('clap-text') ?? []);
-    this.#messages = new Map(clapTexts?.map((x => [x.at, x.innerHTML] as const)).sort(([a], [b]) => b - a));
+    const clapConfig = this.ownerDocument.querySelector('clap-config');
+    this.#configMutationObserver = new MutationObserver(() => {
+      const clapTexts: ClapText[] = Array.from(clapConfig?.querySelectorAll('clap-text') ?? []);
+      this.#messages = new Map(clapTexts?.map((x => [x.at, x.innerHTML] as const)).sort(([a], [b]) => b - a));
+    });
+    if (clapConfig) {
+      this.#configMutationObserver.observe(clapConfig, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
+    }
 
     ;(async () => {
       this.loading = true;
@@ -165,7 +172,8 @@ export class ClapButton extends ConnectedCountElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     ClapButton.intersectionObserver.unobserve(this);
-    this.#channel.removeEventListener('message', this.#clappedCallback)
+    this.#configMutationObserver.disconnect();
+    this.#channel.removeEventListener('message', this.#clappedCallback);
   }
 
   // Ref-counts all elements with the same `parentHref` and invokes `allDisconnectedCallback` when the count reaches 0.
