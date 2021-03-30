@@ -103,7 +103,7 @@ export class ClapButton extends ConnectedCountElement {
     const href = this.href || this.url || '';
     const canonicalEl = this.#canonicalEl = (this.#canonicalEl || this.ownerDocument.head.querySelector<HTMLLinkElement>('link[rel=canonical]'));
     const location = canonicalEl != null ? new URL(canonicalEl.href) : this.ownerDocument.location;
-    return new URL(href, location.origin).href;
+    return new URL(href, location.href).href;
   }
 
   get parentHref() {
