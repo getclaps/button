@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.0-alpha.21
+- Remove broadcast channel polyfill
+- Fix
+
 ## v1.0.0-alpha.20
 - Add esbuild
 - Allow changing attributes after connecting to DOM
